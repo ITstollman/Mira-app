@@ -1,0 +1,149 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mira — App Store screenshots</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* the gel ramp — straight off Brand/mira-gloss.html */
+  --spec:#FFFFFF;   --gloss:#FEE9F1;  --g100:#FECCDB;  --g300:#FDA4BC;
+  --g500:#FB7F9F;   --g700:#EE466E;   --core:#D53159;  --rim:#A81840;
+  /* neutrals, biased plum — never grey */
+  --ground:#FFF9FB; --paper:#FFFFFF;  --shell:#F6E4EA; --hair:#EFD5DE;
+  --ink:#4A1F2E;    --mute:#87606D;   --on-gel:#FFFFFF; --on-pale:#5E1B31;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --sans:"Outfit",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif;
+  --scale:.235;                /* preview only — panels are always 1290x2796 */
+}
+*{box-sizing:border-box}
+body{margin:0;background:#2B1420;color:#fff;font-family:var(--sans)}
+header{padding:22px 28px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+header h1{font-family:var(--serif);font-weight:400;font-size:24px;letter-spacing:3px;margin:0}
+header .note{font-size:12.5px;color:#E7BFCD;line-height:1.55;font-weight:300}
+header .note b{font-weight:600;color:#fff}
+header input[type=range]{accent-color:var(--g700)}
+.rail{display:flex;gap:26px;padding:10px 28px 60px;overflow-x:auto;align-items:flex-start}
+.slot .cap{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#E7BFCD;
+  padding:0 0 9px 2px;display:flex;gap:10px;align-items:center;font-weight:500}
+.slot .cap button{font:600 10px/1 var(--sans);letter-spacing:1.4px;color:#fff;border:0;
+  cursor:pointer;padding:6px 13px;border-radius:999px;
+  background-image:linear-gradient(180deg,#F97FA3 0%,#EE4B74 40%,#C7264F 100%);
+  box-shadow:inset 0 0 0 1px rgb(168 24 64/.8), inset 0 1px 0 rgb(255 255 255/.45)}
+.frame{width:calc(1290px * var(--scale));height:calc(2796px * var(--scale));overflow:hidden;
+  border-radius:calc(64px * var(--scale));box-shadow:0 20px 50px rgb(0 0 0/.5)}
+
+/* ── the panel. 1290x2796 = App Store iPhone 6.9". Never change these two numbers. ── */
+.panel{width:1290px;height:2796px;transform:scale(var(--scale));transform-origin:0 0;
+  position:relative;overflow:hidden;isolation:isolate;
+  display:flex;flex-direction:column;align-items:center;padding:170px 96px 0;
+  background-color:var(--ground);color:var(--ink)}
+.panel.flip{justify-content:flex-end;padding:0 96px 170px}
+.panel.flip .copy{order:2;margin-top:104px}
+
+/* GEL panel — body ramp + rim + refraction + bounce, the button recipe at poster size */
+.panel.gel{color:var(--on-gel);background-color:var(--core);
+  background-image:linear-gradient(180deg,#F97FA3 0%,#EE4B74 26%,#D53159 62%,#B51D46 100%);
+  box-shadow:inset 0 0 0 10px rgb(168 24 64/.95),
+             inset 0 0 0 22px rgb(255 255 255/.30),
+             inset 0 -180px 200px -120px rgb(255 249 251/.40)}
+/* PALE gel — same recipe, body kept in the top of the ramp */
+.panel.pale{color:var(--on-pale);background-color:var(--g300);
+  background-image:linear-gradient(180deg,#FEE9F1 0%,#FECCDB 34%,#FDA4BC 66%,#FB7F9F 100%);
+  box-shadow:inset 0 0 0 10px rgb(238 70 110/.85),
+             inset 0 0 0 22px rgb(255 255 255/.55),
+             inset 0 -180px 200px -120px rgb(255 255 255/.70)}
+/* SPECULAR — one soft streak, upper-left, never centred */
+.panel.gel::before,.panel.pale::before{content:"";position:absolute;inset:0;z-index:1;
+  pointer-events:none;background:radial-gradient(58% 52% at 32% 4%,
+    rgb(255 255 255/.80) 0%, rgb(255 255 255/.30) 42%, rgb(255 255 255/0) 74%)}
+.panel.pale::before{background:radial-gradient(58% 52% at 32% 4%,
+  rgb(255 255 255/.95) 0%, rgb(255 255 255/.42) 44%, rgb(255 255 255/0) 76%)}
+.panel > *{position:relative;z-index:2}
+
+.mark{width:132px;height:132px;object-fit:contain;margin:0 0 46px}
+.panel.gel .mark,.panel.pale .mark{filter:drop-shadow(0 14px 26px rgb(168 24 64/.35))}
+.copy{text-align:center;max-width:1020px}
+.kicker{font:600 30px/1 var(--sans);letter-spacing:9px;text-transform:uppercase;
+  opacity:.62;margin:0 0 32px}
+.head{font-family:var(--serif);font-weight:400;font-size:132px;line-height:1;
+  letter-spacing:0;margin:0}
+.head em{font-style:italic}
+.sub{font:300 46px/1.38 var(--sans);opacity:.72;margin:34px auto 0;max-width:23ch}
+
+/* device — paper puck with the gel rim, bleeds off the bottom */
+.device{margin-top:104px;width:880px;flex:0 0 auto;border-radius:80px;padding:13px;
+  background:var(--paper);
+  box-shadow:inset 0 0 0 2px rgb(168 24 64/.16), 0 70px 120px -40px rgb(168 24 64/.46)}
+.panel.gel .device{box-shadow:inset 0 0 0 2px rgb(255 255 255/.5), 0 70px 120px -40px rgb(120 12 44/.55)}
+.device .screen{width:100%;aspect-ratio:1290/2796;border-radius:68px;overflow:hidden;
+  background:var(--gloss);display:flex;align-items:center;justify-content:center}
+.device .screen img{width:100%;height:100%;object-fit:cover;display:block}
+.ph{text-align:center;color:var(--mute);padding:0 60px}
+.ph b{display:block;font-family:var(--serif);font-weight:400;font-size:70px;color:var(--ink)}
+.ph code{display:inline-block;margin-top:26px;font:500 32px/1 var(--sans);letter-spacing:2px;
+  color:#fff;padding:14px 28px;border-radius:999px;
+  background-image:linear-gradient(180deg,#F97FA3 0%,#EE4B74 40%,#C7264F 100%);
+  box-shadow:inset 0 0 0 1.5px rgb(168 24 64/.8), inset 0 1.5px 0 rgb(255 255 255/.45)}
+.ph small{display:block;margin-top:22px;font:300 27px/1.4 var(--sans)}
+</style>
+
+<header>
+  <h1>MIRA · APP STORE</h1>
+  <div class="note">
+    1290 × 2796 (iPhone 6.9"). Click <b>drop shot</b> to load a screenshot, or save PNGs into
+    <code>store/shots/</code> as 01–06.png.<br>
+    Export: DevTools → right-click the <b>.panel</b> node → <b>Capture node screenshot</b>.
+  </div>
+  <label class="note">preview <input type="range" min="10" max="60" value="23.5" step="0.5" id="z"></label>
+</header>
+
+<div class="rail" id="rail"></div>
+
+<script>
+const MARK = '../Mira/Assets.xcassets/Logo.imageset/mark.png';
+// ponytail: panels are data, not markup. Edit this array, that's the whole template.
+const PANELS = [
+  {n:'01', bg:'gel',   kicker:'Live try-on', head:'See it on you.<br><em>Live.</em>',   sub:'Point the camera. The garment moves with you.',            screen:'The mirror',   arg:'dev:mirror'},
+  {n:'02', bg:'',      kicker:'Any shop',    head:'Paste a link.<br>Wear it.',          sub:'Any store, any garment. Mira puts it on you.',             screen:'Paste a link', arg:'dev:seed',     flip:true},
+  {n:'03', bg:'pale',  kicker:'Your closet', head:'Everything<br>you tried on.',        sub:'Saved, sized, and one tap from the mirror.',               screen:'The Closet',   arg:'dev:closet'},
+  {n:'04', bg:'gel',   kicker:'Your fit',    head:'It knows<br><em>your size.</em>',    sub:'Set your measurements once. Every look fits.',             screen:'Fit',          arg:'dev:fit',      flip:true},
+  {n:'05', bg:'',      kicker:'Lookbook',    head:'A lookbook<br>of you.',              sub:'Keep the looks you loved. Share the ones you didn’t buy.', screen:'Lookbook',     arg:'dev:lookbook'},
+  {n:'06', bg:'pale',  kicker:'Mira Pro',    head:'Free to look.<br><em>Sparks to wear.</em>', sub:'150 sparks a week. Three days free.',               screen:'Paywall',      arg:'dev:paywall'},
+];
+
+rail.innerHTML = PANELS.map((p,i) => `
+  <div class="slot">
+    <div class="cap">${p.n} · ${p.screen} <button data-i="${i}">drop shot</button></div>
+    <div class="frame">
+      <div class="panel ${p.bg} ${p.flip?'flip':''}">
+        <img class="mark" src="${MARK}" alt="" onerror="this.style.visibility='hidden'">
+        <div class="copy">
+          <p class="kicker">${p.kicker}</p>
+          <h2 class="head">${p.head}</h2>
+          <p class="sub">${p.sub}</p>
+        </div>
+        <div class="device"><div class="screen" id="s${i}">
+          <img src="shots/${p.n}.png" alt="" onerror="this.remove()">
+          <div class="ph"><b>${p.screen}</b><code>${p.arg}</code>
+            <small>Xcode → Edit Scheme → Arguments</small></div>
+        </div></div>
+      </div>
+    </div>
+  </div>`).join('');
+
+z.oninput = e => document.documentElement.style.setProperty('--scale', e.target.value/100);
+
+// drop a local PNG into a slot — preview only, nothing is written to disk.
+const pick = Object.assign(document.createElement('input'), {type:'file', accept:'image/*'});
+document.body.append(pick);
+rail.onclick = e => {
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  pick.onchange = () => {
+    const f = pick.files[0]; if (!f) return;
+    document.getElementById('s' + b.dataset.i).innerHTML =
+      `<img src="${URL.createObjectURL(f)}" alt="">`;
+    pick.value = '';
+  };
+  pick.click();
+};
+</script>
