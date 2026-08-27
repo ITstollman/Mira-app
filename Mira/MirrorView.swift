@@ -5,19 +5,20 @@ struct MirrorView: View {
     @Environment(Studio.self) private var studio
     @Environment(Account.self) private var account
     @Environment(FitStore.self) private var fits
+    /// Out of the mirror and back to the home screen.
+    let back: () -> Void
+
     @StateObject private var cam = Camera()
     @StateObject private var clip = Clip()
     @State private var mirror = LiveMirror()
 
     @State private var closet = Dev.has("dev:closet")
-    @State private var lookbook = Dev.has("dev:lookbook")
     @State private var flash = false
     @State private var captured: Look? = Dev.has("dev:look") ? Look(garment: Catalog.all[2], size: .m, shot: nil) : nil
     @State private var nudge: CGSize = .zero
     @State private var dragging: CGSize = .zero
     @State private var paywall = Dev.has("dev:paywall")
     @State private var topup = Dev.has("dev:topup")
-    @State private var profile = Dev.has("dev:profile")
     @State private var pitched = false
     /// How long the running session was bought for — the ring needs a denominator.
     @State private var window = 1
@@ -50,17 +51,11 @@ struct MirrorView: View {
         }
         .fullScreenCover(isPresented: $paywall) { PaywallView() }
         .sheet(isPresented: $topup) { TopupSheet() }
-        .sheet(isPresented: $profile) {
-            ProfileSheet(topup: { profile = false; after { topup = true } },
-                         pro:   { profile = false; after { paywall = true } },
-                         looks: { profile = false; after { lookbook = true } })
-        }
         .sheet(isPresented: $closet) { ClosetSheet() }
         // picking is the whole gesture — see follow()
         .onChange(of: studio.picked) { _, _ in Task { await follow() } }
         // session over (you stopped it, or the seconds ran out): the local camera comes back
         .onChange(of: mirror.phase) { _, phase in if phase == .off { cam.start() } }
-        .sheet(isPresented: $lookbook) { LookbookView() }
         .fullScreenCover(item: $captured) { LookView(look: $0) }
     }
 
@@ -126,13 +121,12 @@ struct MirrorView: View {
     private var chrome: some View {
         VStack(spacing: 0) {
             HStack {
-                Button { tap(); profile = true } label: {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(M.ink)
-                        .puck()
+                Button(action: leave) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 21, weight: .semibold))
+                        .ghost()
                 }
-                .accessibilityLabel("Settings")
+                .accessibilityLabel("Back")
 
                 Spacer()
 
@@ -214,6 +208,16 @@ struct MirrorView: View {
                 await account.sync()
                 if account.sparks < Spend.sparks(forLiveSeconds: 10) { short() }
             }
+        }
+    }
+
+    /// Leaving with the stream still up would keep billing for a mirror nobody is
+    /// standing in front of, so it settles up on the way out.
+    private func leave() {
+        tap()
+        Task {
+            if let settled = await mirror.stop() { account.adopt(settled) }
+            back()
         }
     }
 
@@ -302,9 +306,4 @@ struct Shutter: View {
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { shot() }
     }
-}
-
-/// Present one sheet as another closes — SwiftUI drops the second otherwise.
-private func after(_ work: @escaping () -> Void) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: work)
 }

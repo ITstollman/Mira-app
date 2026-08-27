@@ -30,12 +30,11 @@ struct ClosetSheet: View {
                     LazyVGrid(columns: cols, spacing: 16) {
                         PhotosPicker(selection: $photo, matching: .images) {
                             WayCard(icon: "photo.on.rectangle.angled",
-                                    action: "Your photos", what: "Anything", from: "Off your camera roll")
+                                    action: "Your photos", from: "off your camera roll")
                         }
                         .buttonStyle(.plain)
 
-                        WayCard(icon: "link", action: "Paste a link",
-                                what: "Anything", from: "From any shop")
+                        WayCard(icon: "link", action: "Paste a link", from: "from any shop", shops: true)
                             .onTapGesture { tap(); linking = true }
 
                         ForEach(pieces) { g in
@@ -74,31 +73,27 @@ struct ClosetSheet: View {
 struct WayCard: View {
     let icon: String
     let action: String
-    let what: String
     let from: String
+    /// Names the shops instead of leaving "any shop" to be taken on faith.
+    var shops = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 22, style: .continuous).fill(M.blush)
-                VStack(spacing: 12) {
-                    Image(systemName: icon).font(.system(size: 24, weight: .light)).foregroundStyle(M.rose)
-                    Text(action).tracked(10, 1.6).foregroundStyle(M.ink)
-                }
-            }
-            .frame(height: 208)
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .strokeBorder(M.petal, style: StrokeStyle(lineWidth: 1.4, dash: [5, 4]))
-            )
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(what).font(M.display(16)).foregroundStyle(M.ink)
+        ZStack {
+            RoundedRectangle(cornerRadius: 22, style: .continuous).fill(M.blush)
+            VStack(spacing: 10) {
+                Image(systemName: icon).font(.system(size: 24, weight: .light)).foregroundStyle(M.rose)
+                Text(action).tracked(10, 1.6).foregroundStyle(M.ink)
                 Text(from).tracked(8, 1.2).foregroundStyle(M.mute)
+                    .multilineTextAlignment(.center)
+                if shops { BrandRow(tile: 36, columns: 3, gap: 6).padding(.top, 4) }
             }
-            .padding(.top, 10)
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 10)
         }
+        .frame(height: 208)
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(M.petal, style: StrokeStyle(lineWidth: 1.4, dash: [5, 4]))
+        )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(action)
         .accessibilityAddTraits(.isButton)

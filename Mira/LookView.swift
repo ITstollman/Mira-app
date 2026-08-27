@@ -97,57 +97,6 @@ struct LookView: View {
     }
 }
 
-struct LookbookView: View {
-    @Environment(Studio.self) private var studio
-    @State private var open: Look?
-    private let cols = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
-
-    var body: some View {
-        ZStack {
-            M.cream.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                VStack(spacing: 8) {
-                    Text("Lookbook").font(M.display(30, .light)).foregroundStyle(M.ink)
-                    Text(studio.looks.isEmpty ? "Nothing kept yet" : "\(studio.looks.count) looks")
-                        .tracked(9, 1.8).foregroundStyle(M.mute)
-                }
-                .padding(.top, 26)
-                .padding(.bottom, 22)
-
-                if studio.looks.isEmpty {
-                    Spacer()
-                    VStack(spacing: 18) {
-                        Silhouette(cut: .slip)
-                            .stroke(M.rose.opacity(0.35), style: .init(lineWidth: 1.2, dash: [4, 5]))
-                            .frame(width: 110, height: 190)
-                        Text("Try something on, hit the shutter,\nand it lands here.")
-                            .multilineTextAlignment(.center)
-                            .font(.system(size: 13))
-                            .foregroundStyle(M.mute)
-                    }
-                    Spacer()
-                    Spacer()
-                } else {
-                    ScrollView {
-                        LazyVGrid(columns: cols, spacing: 16) {
-                            ForEach(studio.looks) { l in
-                                LookCard(look: l).onTapGesture { tap(); open = l }
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 40)
-                    }
-                }
-            }
-        }
-        .fullScreenCover(item: $open) { LookView(look: $0) }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
-        .presentationBackground(.clear)
-    }
-}
-
 struct LookCard: View {
     let look: Look
 

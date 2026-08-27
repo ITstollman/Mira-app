@@ -7,8 +7,6 @@ struct ProfileSheet: View {
 
     let topup: () -> Void
     let pro: () -> Void
-    /// The mirror screen gave up its lookbook button to make room for this one.
-    let looks: () -> Void
 
     @State private var confirmingSignOut = false
 
@@ -86,9 +84,6 @@ struct ProfileSheet: View {
                     // ponytail: Restore/Manage/Terms/Privacy are inert until StoreKit and
                     // the real URLs exist — the rows are the whole feature for now.
                     VStack(spacing: 0) {
-                        Button { tap(); looks() } label: { row("Your lookbook") }
-                            .buttonStyle(.plain)
-                        line
                         row("Restore purchases").onTapGesture { tap() }
                         line
                         row("Manage subscription").onTapGesture { tap() }

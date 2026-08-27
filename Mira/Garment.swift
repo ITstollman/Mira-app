@@ -134,10 +134,6 @@ enum Catalog {
               tint: Color(red: 0.663, green: 0.635, blue: 0.808), category: .bottoms,
               prompt: "Substitute the lower body garment with a periwinkle blue silk pencil skirt, high waisted, knee length, with a straight narrow silhouette and a back slit."),
     ]
-
-    static func of(_ c: Garment.Category) -> [Garment] {
-        c == .all ? all : all.filter { $0.category == c }
-    }
 }
 
 private extension String {

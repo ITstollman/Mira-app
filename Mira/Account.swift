@@ -109,6 +109,12 @@ struct Pack: Identifiable {
     var sparks: Int
 
     var signedIn: Bool { email != nil }
+    /// What to call you on the home screen. The address is all Google hands over until
+    /// we ask for a profile scope we don't need yet.
+    var name: String {
+        guard let first = email?.prefix(while: { $0.isLetter }), !first.isEmpty else { return "there" }
+        return first.prefix(1).uppercased() + first.dropFirst()
+    }
     var subscribed: Bool { plan != nil }
     var looksLeft: Int { sparks / Spend.look }
     var liveSeconds: Int { sparks }

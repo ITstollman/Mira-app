@@ -120,9 +120,8 @@ struct FlipButton: View {
             if let mirror, mirror.phase != .off { Task { await mirror.flip() } } else { cam.flip() }
         } label: {
             Image(systemName: "arrow.triangle.2.circlepath.camera")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(M.ink)
-                .puck()
+                .font(.system(size: 18, weight: .semibold))
+                .ghost()
         }
         .accessibilityLabel(showingFront ? "Switch to the back camera" : "Switch to the selfie camera")
     }

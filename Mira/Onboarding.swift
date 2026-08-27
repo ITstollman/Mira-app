@@ -476,59 +476,75 @@ private struct Way: View {
 /// which a sentence does not. The last tile says the list is not the limit.
 struct BrandRow: View {
     /// Name for the screen reader, slug for the catalog. They differ: "H&M" is not a
-    /// filename.
-    static let shops = [("Zara", "zara"), ("Mango", "mango"), ("H&M", "hm"),
-                        ("ASOS", "asos"), ("Revolve", "revolve")]
+    /// filename. A nil slug is the tile that stands for everywhere else.
+    static let shops: [(name: String, slug: String?)] = [
+        ("Zara", "zara"), ("Mango", "mango"), ("H&M", "hm"),
+        ("ASOS", "asos"), ("Revolve", "revolve"), ("and 99 more stores", nil),
+    ]
+
+    var tile: CGFloat = 44
+    /// How many fit on a line — six across inside the picker's full-width button,
+    /// three stacked inside the narrow card in the closet.
+    var columns = 6
+    var gap: CGFloat = 7
 
     var body: some View {
-        HStack(spacing: 7) {
-            ForEach(Self.shops, id: \.1) { shop in
-                BrandTile(name: shop.0, slug: shop.1)
+        VStack(spacing: gap) {
+            ForEach(rows.indices, id: \.self) { r in
+                HStack(spacing: gap) {
+                    ForEach(rows[r], id: \.name) { shop in
+                        BrandTile(name: shop.name, slug: shop.slug, side: tile)
+                    }
+                }
             }
-            MoreTile()
         }
         .fixedSize()
+    }
+
+    private var rows: [[(name: String, slug: String?)]] {
+        stride(from: 0, to: Self.shops.count, by: columns).map {
+            Array(Self.shops[$0 ..< min($0 + columns, Self.shops.count)])
+        }
     }
 }
 
 private struct BrandTile: View {
     let name: String
-    let slug: String
+    /// nil for the overflow tile: blush and a count, so five logos don't read as a
+    /// list of five.
+    let slug: String?
+    let side: CGFloat
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: side * 0.27, style: .continuous)
+    }
 
     var body: some View {
         ZStack {
-            M.tile.fill(.white)
-            // the shop's own square mark, filling the tile — it *is* the icon, not a
-            // logo sitting on a card. Our type only if the artwork ever goes missing.
-            if let art = UIImage(named: "shop-\(slug)") {
-                Image(uiImage: art).resizable().scaledToFill()
+            shape.fill(slug == nil ? M.blush : .white)
+            if let slug {
+                // the shop's own square mark, filling the tile — it *is* the icon, not a
+                // logo sitting on a card. Our type only if the artwork ever goes missing.
+                if let art = UIImage(named: "shop-\(slug)") {
+                    Image(uiImage: art).resizable().scaledToFill()
+                } else {
+                    // a wordmark set in our own face is nominative use and needs nobody's
+                    // permission — a facsimile of their logotype would need a licence
+                    Text(name.uppercased())
+                        .font(M.ui(side * 0.18, .bold)).kerning(0.3)
+                        .foregroundStyle(M.ink.opacity(0.62))
+                        .lineLimit(1).minimumScaleFactor(0.6).padding(.horizontal, 4)
+                }
             } else {
-                // a wordmark set in our own face is nominative use and needs nobody's
-                // permission — a facsimile of their logotype would need a licence
-                Text(name.uppercased())
-                    .font(M.ui(8, .bold)).kerning(0.3)
-                    .foregroundStyle(M.ink.opacity(0.62))
-                    .lineLimit(1).minimumScaleFactor(0.6).padding(.horizontal, 4)
+                Text("+99")
+                    .font(M.ui(side * 0.3, .semibold)).kerning(-0.2)
+                    .foregroundStyle(M.ink.opacity(0.72))
             }
         }
-        .frame(width: 44, height: 44)
-        .clipShape(M.tile)
-        .overlay(M.tile.strokeBorder(M.shell, lineWidth: 1))
+        .frame(width: side, height: side)
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(M.shell, lineWidth: 1))
         .accessibilityLabel(name)
-    }
-}
-
-/// Closes the row so five logos don't read as a list of five. Blush, not rose: it
-/// belongs to the row, it isn't a button.
-private struct MoreTile: View {
-    var body: some View {
-        Text("+99")
-            .font(M.ui(13, .semibold)).kerning(-0.2)
-            .foregroundStyle(M.ink.opacity(0.72))
-            .frame(width: 44, height: 44)
-            .background(M.tile.fill(M.blush))
-            .overlay(M.tile.strokeBorder(M.shell, lineWidth: 1))
-            .accessibilityLabel("and 99 more stores")
     }
 }
 

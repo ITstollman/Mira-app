@@ -51,6 +51,17 @@ extension View {
             .frame(width: max(d, 44), height: max(d, 44))   // hit area only; the visible puck stays at d
             .contentShape(Circle())
     }
+
+    /// No plate at all — for the two that float on the camera, where a white disc is
+    /// just a hole punched in the reflection. The shadow is what keeps the glyph
+    /// readable over a bright feed.
+    func ghost(_ d: CGFloat = 44) -> some View {
+        foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.45), radius: 5, y: 1)
+            .shadow(color: .black.opacity(0.2), radius: 12)
+            .frame(width: d, height: d)
+            .contentShape(Circle())
+    }
 }
 
 /// The mark: an organic raspberry blob with a white m.
@@ -122,4 +133,7 @@ func tap(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
 // ponytail: screenshot/dev switches, no effect unless launched with the flag.
 enum Dev {
     static func has(_ flag: String) -> Bool { ProcessInfo.processInfo.arguments.contains(flag) }
+    /// Any jump-to-screen flag at all. The gates before the app proper — the reel, the
+    /// tape measure — stand aside for it, since you asked for somewhere specific.
+    static var jumping: Bool { ProcessInfo.processInfo.arguments.contains { $0.hasPrefix("dev:") } }
 }

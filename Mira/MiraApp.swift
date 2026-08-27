@@ -34,12 +34,15 @@ struct MiraApp: App {
 struct RootView: View {
     @Environment(Account.self) private var account
     @Environment(FitStore.self) private var fits
-    // ponytail: dev-only jump-to-screen flags (dev:mirror, dev:closet, dev:lookbook,
-    // dev:look, dev:seed, dev:auth, dev:paywall, dev:topup, dev:profile, dev:fit,
-    // dev:pro, dev:broke, dev:onboard)
+    // ponytail: dev-only jump-to-screen flags (dev:mirror, dev:closet, dev:look,
+    // dev:seed, dev:auth, dev:paywall, dev:topup, dev:profile, dev:fit, dev:pro,
+    // dev:broke, dev:onboard)
     @State private var onboarded = Onboard.done
-    // dev:mirror means "jump to the mirror" — only dev:fit asks for the tape measure
-    @State private var measured = Dev.has("dev:mirror") && !Dev.has("dev:fit")
+    /// Home unless you asked for the mirror — everything scoped to the mirror screen
+    /// (the closet, a captured look) implies it.
+    @State private var mirroring = ["mirror", "closet", "look"].contains { Dev.has("dev:\($0)") }
+    // any jump flag means "get me to a screen" — only dev:fit asks for the tape measure
+    @State private var measured = Dev.jumping && !Dev.has("dev:fit")
 
     var body: some View {
         ZStack {
@@ -53,8 +56,12 @@ struct RootView: View {
                 if fits.needsSetup && !measured {
                     FitSetup { withAnimation(.easeInOut(duration: 0.4)) { measured = true } }
                         .transition(.opacity)
+                } else if mirroring {
+                    MirrorView(back: { withAnimation(.easeInOut(duration: 0.3)) { mirroring = false } })
+                        .transition(.opacity)
                 } else {
-                    MirrorView().transition(.opacity)
+                    HomeView(start: { withAnimation(.easeInOut(duration: 0.3)) { mirroring = true } })
+                        .transition(.opacity)
                 }
             } else {
                 AuthView().transition(.opacity)

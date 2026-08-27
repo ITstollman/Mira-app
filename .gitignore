@@ -14,3 +14,7 @@ node_modules/
 .env
 *.env
 !.env.example
+
+# split out into their own repos
+server/
+landing/
