@@ -35,18 +35,18 @@ struct ProfileSheet: View {
                         .background(Capsule().fill(account.subscribed ? M.rose : M.blush))
                         .padding(.top, 10)
 
-                    Text("\(account.sparks)")
+                    Text(Spend.said(account.sparks))
                         .font(M.display(52, .light))
                         .foregroundStyle(M.ink)
                         .padding(.top, 26)
 
-                    Text("about \(account.looksLeft) looks")
+                    Text("\(Spend.unit(account.sparks)) · about \(account.looksLeft) looks")
                         .tracked(9, 1.6)
                         .foregroundStyle(M.mute)
                         .padding(.top, 4)
 
                     Button { tap(); topup() } label: {
-                        Text("Get more sparks")
+                        Text("Get more minutes")
                             .tracked(11, 2.4)
                             .foregroundStyle(M.onRose)
                             .frame(maxWidth: .infinity)
@@ -113,7 +113,7 @@ struct ProfileSheet: View {
             Button("Sign out", role: .destructive) { account.signOut(); dismiss() }
             Button("Stay", role: .cancel) {}
         } message: {
-            Text("Your sparks stay on this account.")
+            Text("Your minutes stay on this account.")
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)

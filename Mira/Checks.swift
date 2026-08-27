@@ -21,6 +21,22 @@ enum Checks {
         }
         assert(Spend.liveSeconds(forSparks: 9) < 10, "9 sparks must not buy a session")
 
+        // the balance is only ever spoken in minutes, and the packs are sized so no SKU
+        // has to say "2.5" of anything
+        assert(Spend.said(600) == "10" && Spend.unit(600) == "minutes")
+        assert(Spend.said(60) == "1" && Spend.unit(60) == "minute")
+        assert(Spend.said(45) == "45" && Spend.unit(45) == "seconds", "under a minute stays in seconds")
+        assert(Spend.said(90) == "1.5" && Spend.unit(90) == "minutes")
+        for pack in Pack.all { assert(pack.sparks % 60 == 0, "\(pack.id) isn't whole minutes") }
+        // a bigger pack has to be better value, or the badge on it is a lie
+        let perMin = Pack.all.map { (Double($0.price.dropFirst()) ?? 0) / (Double($0.sparks) / 60) }
+        assert(zip(perMin, perMin.dropFirst()).allSatisfy { $0 > $1 + 0.001 },
+               "the topup ladder doesn't get cheaper: \(perMin)")
+        // and every one of them dearer than subscribing, or nobody subscribes
+        let planPerMin = 12.50 / (Double(Plan.monthly.sparks) / 60)
+        assert(perMin.allSatisfy { $0 > planPerMin }, "a topup undercuts Mira Pro")
+        assert(Spend.said(Plan.monthly.sparks) == "10", "the plan stopped granting whole minutes")
+
         // the paywall makes two arithmetic claims out loud — that the yearly plan is
         // $12.50 *a month*, and that this is half the monthly one. Both have to be true.
         func dollars(_ s: String) -> Double { Double(s.filter { $0.isNumber || $0 == "." }) ?? 0 }

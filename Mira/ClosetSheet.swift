@@ -6,6 +6,10 @@ struct ClosetSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var linking = false
     @State private var photo: PhotosPickerItem?
+    /// Opens half-height: a live session bills by the second, and burying the reflection
+    /// and its countdown under a full-screen browser is how someone loses minutes without
+    /// seeing it happen. Drag up for the whole wardrobe.
+    @State private var height: PresentationDetent = .medium
 
     private let cols = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
 
@@ -18,10 +22,25 @@ struct ClosetSheet: View {
             M.cream.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                VStack(spacing: 8) {
-                    Text("The Closet").font(M.display(30, .light)).foregroundStyle(M.ink)
-                    Text("\(pieces.count) pieces ready to wear")
-                        .tracked(9, 1.8).foregroundStyle(M.mute)
+                ZStack {
+                    VStack(spacing: 8) {
+                        Text("The Closet").font(M.display(30, .light)).foregroundStyle(M.ink)
+                        Text("\(pieces.count) pieces ready to wear")
+                            .tracked(9, 1.8).foregroundStyle(M.mute)
+                    }
+                    // the way out that isn't picking something. The swipe works too, but the
+                    // meter may be running behind this and a gesture is a bad only-option.
+                    HStack {
+                        Spacer()
+                        Button { tap(); dismiss() } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(M.ink)
+                                .puck(34)
+                        }
+                        .accessibilityLabel("Close")
+                    }
+                    .padding(.trailing, 18)
                 }
                 .padding(.top, 26)
                 .padding(.bottom, 22)
@@ -50,7 +69,7 @@ struct ClosetSheet: View {
                 }
             }
         }
-        .presentationDetents([.large])
+        .presentationDetents([.medium, .large], selection: $height)
         .presentationDragIndicator(.visible)
         .presentationBackground(.clear)
         // a piece off the roll goes straight on, same as a pasted one

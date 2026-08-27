@@ -123,15 +123,7 @@ private struct PlanRow: View {
                         .background(M.rose)
                 }
                 HStack(spacing: 13) {
-                    ZStack {
-                        Circle().fill(on ? M.rose : .clear).frame(width: 24, height: 24)
-                        Circle().stroke(on ? M.rose : M.shell, lineWidth: 1.5).frame(width: 24, height: 24)
-                        if on {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(M.onRose)
-                        }
-                    }
+                    Tick(on: on)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(plan.headline)
                             .font(.system(size: 16, weight: .semibold))
@@ -166,80 +158,83 @@ private struct PlanRow: View {
 struct TopupSheet: View {
     @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
+    /// Opens on the badged one, the way the paywall opens on the plan it is selling.
+    @State private var picked = Pack.all.first { $0.note != nil }?.id ?? Pack.all[0].id
+
+    private var pack: Pack { Pack.all.first { $0.id == picked } ?? Pack.all[0] }
 
     var body: some View {
         ZStack {
             M.cream.ignoresSafeArea()
 
+            // same shape as the paywall: the buy block sits on the floor and the list
+            // above it takes whatever is left
             VStack(spacing: 0) {
-                Text("Sparks")
+                Text("Minutes")
                     .font(M.display(36, .light))
                     .kerning(2)
                     .foregroundStyle(M.ink)
-                    .padding(.top, 40)
+                    .padding(.top, 34)
 
-                Text("\(account.sparks) left · about \(account.looksLeft) looks")
+                Text("\(Spend.said(account.sparks)) \(Spend.unit(account.sparks)) left · about \(account.looksLeft) looks")
                     .tracked(9, 1.6)
                     .foregroundStyle(M.mute)
                     .padding(.top, 8)
 
                 HStack(spacing: 18) {
-                    rate("A look", "\(Spend.look)")
+                    // the mirror bills in real time — saying so is the whole case for the unit
+                    rate("A look", "\(Spend.look) sec")
                     Rectangle().fill(M.shell).frame(width: 1, height: 26)
-                    rate("A minute live", "\(Spend.livePerMinute)")
+                    rate("The mirror", "real time")
                 }
                 .padding(.vertical, 18)
                 .frame(maxWidth: .infinity)
-                .background(RoundedRectangle(cornerRadius: 20).fill(.white))
+                .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(.white))
                 .padding(.horizontal, 22)
-                .padding(.top, 22)
+                .padding(.top, 20)
 
-                VStack(spacing: 10) {
-                    ForEach(Pack.all) { pack in
-                        Button {
-                            account.topup(pack)
-                            dismiss()
-                        } label: {
-                            HStack(spacing: 12) {
-                                Blob().fill(M.rose).frame(width: 26, height: 26)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("\(pack.sparks) sparks")
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundStyle(M.ink)
-                                    Text("about \((pack.sparks / Spend.look / 10) * 10) looks")
-                                        .font(.system(size: 11)).foregroundStyle(M.mute)
-                                }
-                                Spacer(minLength: 0)
-                                if let note = pack.note {
-                                    Text(note)
-                                        .tracked(8, 1.1)
-                                        .foregroundStyle(M.onRose)
-                                        .padding(.horizontal, 9).padding(.vertical, 5)
-                                        .background(Capsule().fill(M.rose))
-                                }
-                                Text(pack.price)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(M.ink)
-                            }
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 16)
-                            .background(RoundedRectangle(cornerRadius: 20).fill(.white))
-                            .overlay(RoundedRectangle(cornerRadius: 20).stroke(M.shell, lineWidth: 1))
+                Spacer(minLength: 12)
+
+                VStack(spacing: 12) {
+                    ForEach(Pack.all) { p in
+                        PackRow(pack: p, on: p.id == picked) {
+                            tap()
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { picked = p.id }
                         }
-                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal, 22)
                 .padding(.top, 18)
 
-                Spacer()
+                Spacer(minLength: 12)
+
+                Button {
+                    account.topup(pack)
+                    dismiss()
+                } label: {
+                    // outlined, not filled: a topup is the lesser buy, and the one solid
+                    // rose capsule in the app is the mirror itself
+                    Text("Get \(pack.said) · \(pack.price)")
+                        .tracked(13, 2.6)
+                        .foregroundStyle(M.rouge)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(Capsule().fill(.white))
+                        .overlay(Capsule().strokeBorder(M.rose, lineWidth: 1.5))
+                        .shadow(color: M.rouge.opacity(0.1), radius: 12, y: 5)
+                }
+                .buttonStyle(Squish())
+                .padding(.horizontal, 22)
 
                 Text(account.subscribed
-                     ? "Sparks never expire. Your plan refills every month."
-                     : "Mira Pro refills your sparks every month, for less.")
+                     ? "Minutes never expire. Your plan refills every month."
+                     : "Mira Pro refills your minutes every month, for less.")
                     .tracked(8, 1.2)
                     .foregroundStyle(M.mute.opacity(0.7))
-                    .padding(.bottom, 26)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
+                    .padding(.top, 14)
+                    .padding(.bottom, 24)
             }
         }
         .presentationDetents([.large])
@@ -251,5 +246,62 @@ struct TopupSheet: View {
             Text(n).font(M.display(22)).foregroundStyle(M.rose)
             Text(what).tracked(8, 1.2).foregroundStyle(M.mute)
         }
+    }
+}
+
+/// The same row the plan picker uses, carrying a pack instead: tick, the mark for the
+/// unit, what you get, and what a minute of it costs.
+private struct PackRow: View {
+    let pack: Pack
+    let on: Bool
+    let pick: () -> Void
+
+    var body: some View {
+        Button(action: pick) {
+            VStack(spacing: 0) {
+                if let note = pack.note {
+                    Text(note)
+                        .tracked(9, 1.8)
+                        .foregroundStyle(M.onRose)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(M.rose)
+                }
+                HStack(spacing: 12) {
+                    Tick(on: on)
+                    Image("Spark")
+                        .resizable().scaledToFit()
+                        .frame(width: 30, height: 30)
+                        .opacity(on ? 1 : 0.62)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(pack.said)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(on ? M.ink : M.mute)
+                        Text("about \(pack.looks) looks")
+                            .font(.system(size: 12)).foregroundStyle(M.mute)
+                    }
+                    Spacer(minLength: 6)
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(pack.price)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(on ? M.ink : M.mute)
+                        Text(pack.perMinute)
+                            .font(.system(size: 11)).monospacedDigit()
+                            .foregroundStyle(M.mute)
+                    }
+                    .fixedSize()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 15)
+                .frame(maxWidth: .infinity)
+                .background(.white)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(on ? M.rose : M.shell, lineWidth: on ? 2 : 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
     }
 }

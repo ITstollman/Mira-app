@@ -29,11 +29,6 @@ struct HomeView: View {
                         .padding(.trailing, 56)   // the gear sits here
                         .padding(.top, 16)
 
-                    Text(account.subscribed ? "\(account.sparks) sparks · Mira Pro" : "\(account.sparks) sparks")
-                        .tracked(9, 1.8)
-                        .foregroundStyle(M.mute)
-                        .padding(.top, 8)
-
                     StartButton(go: start).padding(.top, 26)
 
                     Text(studio.looks.isEmpty ? "Your looks" : "Your looks · \(studio.looks.count)")
@@ -106,11 +101,16 @@ private struct StartButton: View {
 
     var body: some View {
         Button { tap(.medium); go() } label: {
-            HStack(spacing: 11) {
-                Image(systemName: "sparkles").font(.system(size: 18, weight: .medium))
-                Text("Try something on").tracked(13, 2.6)
+            HStack(spacing: 12) {
+                // the brand's own camera, pink on pink — the white glow is what lifts it
+                // off the bubble without putting it on a plate
+                Image("Camera")
+                    .resizable().scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .shadow(color: .white.opacity(0.9), radius: 3)
+                    .shadow(color: M.rouge.opacity(0.4), radius: 4, y: 2)
+                Text("Try something on").tracked(13, 2.6).foregroundStyle(M.onRose)
             }
-            .foregroundStyle(M.onRose)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 25)
             .background(bubble)
@@ -155,11 +155,10 @@ private struct StartButton: View {
     private var sheen: some View {
         GeometryReader { geo in
             Capsule()
-                .fill(.white.opacity(0.3))
-                .frame(width: geo.size.width * 0.1, height: geo.size.height * 3)
+                .fill(.white.opacity(0.34))
+                .frame(width: geo.size.width * 0.11, height: geo.size.height * 3)
                 .rotationEffect(.degrees(22))
-                .blur(radius: 7)
-                .blendMode(.plusLighter)
+                .blur(radius: 9)
                 .position(x: geo.size.width * (sweep ? 2.2 : -1.2), y: geo.size.height / 2)
         }
     }

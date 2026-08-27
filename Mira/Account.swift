@@ -2,8 +2,10 @@ import SwiftUI
 
 // MARK: - the unit
 //
-// One spark = one second of Mira compute = $0.02 of COGS.
-// Everything the app can do is priced in sparks so margin is knowable per tap.
+// One spark = one second of Mira compute = $0.02 of COGS. The ledger and the wire
+// count sparks so margin is knowable per tap; the screen says minutes, because that is
+// what anyone standing in front of a mirror actually pictures. ``Spend.said`` is the
+// only place the two meet — never print a raw balance.
 
 enum Spend {
     static let look = 3          // a still try-on render  ~$0.06
@@ -14,6 +16,20 @@ enum Spend {
 
     static func sparks(forLiveSeconds s: Int) -> Int { (s * livePerMinute + 59) / 60 }
     static func liveSeconds(forSparks n: Int) -> Int { n * 60 / livePerMinute }
+
+    /// A balance the way it is said out loud. Under a minute it stays in seconds rather
+    /// than rounding a first session away to "0.3".
+    static func said(_ n: Int) -> String {
+        guard n >= 60 else { return "\(n)" }
+        let m = Double(n) / 60
+        return m == m.rounded() ? "\(Int(m))" : String(format: "%.1f", m)
+    }
+
+    /// The word that goes with ``said``.
+    static func unit(_ n: Int) -> String {
+        if n < 60 { return n == 1 ? "second" : "seconds" }
+        return said(n) == "1" ? "minute" : "minutes"
+    }
 }
 
 enum Plan: String, CaseIterable, Identifiable {
@@ -74,13 +90,11 @@ enum Plan: String, CaseIterable, Identifiable {
         case .monthly: nil
         }
     }
-    /// Sparks granted, refreshed every month.
+    /// Granted on signing, refreshed every month. Ten minutes.
     var sparks: Int { 600 }
 
     /// "3 minutes" — written once so the badge, the headline and the small print agree.
     static var trialCopy: String { "\(trialSeconds / 60) minutes" }
-
-    var grant: String { "600 sparks a month" }
 }
 
 struct Pack: Identifiable {
@@ -89,15 +103,30 @@ struct Pack: Identifiable {
     let price: String
     let note: String?
 
+    /// The size the way it is said out loud.
+    var said: String { "\(Spend.said(sparks)) \(Spend.unit(sparks))" }
+    /// Rounded down to something round — "about" is doing the work.
+    var looks: Int { (sparks / Spend.look / 10) * 10 }
+    /// What a minute works out to: the pack equivalent of the plan's /mo figure, and the
+    /// only thing that makes the ladder legible at a glance. Checks enforces that it
+    /// falls as the packs get bigger — otherwise the badge on the middle one is a lie.
+    var perMinute: String {
+        let d = Double(price.dropFirst()) ?? 0
+        return String(format: "$%.2f/min", d / (Double(sparks) / 60))
+    }
+
+    // Whole minutes, and each step down the ladder buys a cheaper one — $5.00, $4.00,
+    // $3.33. All of them dearer than the plan's $1.25–2.50, which is the point: a topup
+    // is what you buy when you did not want to subscribe.
     // ponytail: hardcoded. StoreKit products replace this when there's an App Store Connect entry.
     static let all = [
-        Pack(id: "spark.150", sparks: 150, price: "$9.99",  note: nil),
-        Pack(id: "spark.350", sparks: 350, price: "$19.99", note: "MOST POPULAR"),
-        Pack(id: "spark.800", sparks: 800, price: "$39.99", note: nil),
+        Pack(id: "min.2",  sparks: 120, price: "$9.99",  note: nil),
+        Pack(id: "min.5",  sparks: 300, price: "$19.99", note: "MOST POPULAR"),
+        Pack(id: "min.12", sparks: 720, price: "$39.99", note: nil),
     ]
 }
 
-// The sparks live on the server — this is a cache of what it last said, kept locally so
+// The balance lives on the server — this is a cache of what it last said, kept locally so
 // the number is on screen before a round trip finishes. Anything that actually moves
 // money comes back with the new balance and `adopt` takes it.
 //

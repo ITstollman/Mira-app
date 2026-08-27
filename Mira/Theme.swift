@@ -64,6 +64,24 @@ extension View {
     }
 }
 
+/// The radio dot the plan picker and the pack picker share, so a chosen plan and a
+/// chosen pack are the same gesture wearing the same clothes.
+struct Tick: View {
+    let on: Bool
+
+    var body: some View {
+        ZStack {
+            Circle().fill(on ? M.rose : .clear).frame(width: 24, height: 24)
+            Circle().stroke(on ? M.rose : M.shell, lineWidth: 1.5).frame(width: 24, height: 24)
+            if on {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(M.onRose)
+            }
+        }
+    }
+}
+
 /// The mark: an organic raspberry blob with a white m.
 struct Blob: Shape {
     func path(in r: CGRect) -> Path {

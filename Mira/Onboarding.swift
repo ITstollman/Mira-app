@@ -102,6 +102,11 @@ private struct Hero: View {
     var go: () -> Void
     @State private var showing = false
 
+    // ponytail: one flag, a delay per element. No phase enum, no timers.
+    private func reveal(_ delay: Double, _ response: Double = 0.6) -> Animation {
+        .spring(response: response, dampingFraction: 0.82).delay(delay)
+    }
+
     var body: some View {
         GeometryReader { g in
             // 9:16 portrait, about two thirds of the width
@@ -116,18 +121,22 @@ private struct Hero: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 44)
                     .opacity(showing ? 1 : 0)
+                    .blur(radius: showing ? 0 : 7)
+                    .offset(y: showing ? 0 : 16)
+                    .animation(reveal(0.05, 0.75), value: showing)
 
                 Spacer(minLength: 24)
 
                 Reel(name: "demo", loop: true) { DemoPlaceholder() }
                     .frame(width: w, height: w * 16 / 9)
-                    .overlay(alignment: .bottomLeading) { ProductChip() }
+                    .overlay(alignment: .bottomLeading) { ProductChip(showing: showing) }
                     .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous)
                         .strokeBorder(.white, lineWidth: 5))
-                    .shadow(color: M.rouge.opacity(0.18), radius: 26, y: 14)
-                    .scaleEffect(showing ? 1 : 0.94)
+                    .shadow(color: M.rouge.opacity(showing ? 0.18 : 0), radius: 26, y: 14)
+                    .scaleEffect(showing ? 1 : 0.88)
                     .opacity(showing ? 1 : 0)
+                    .animation(reveal(0.28, 0.8), value: showing)
 
                 Spacer(minLength: 24)
 
@@ -136,6 +145,7 @@ private struct Hero: View {
                     .foregroundStyle(M.mute.opacity(0.7))
                     .padding(.bottom, 14)
                     .opacity(showing ? 1 : 0)
+                    .animation(reveal(0.86), value: showing)
 
                 Button { tap(.medium); go() } label: {
                     Text("Live try on")
@@ -149,17 +159,20 @@ private struct Hero: View {
                 .padding(.horizontal, 30)
                 .padding(.bottom, 24)
                 .opacity(showing ? 1 : 0)
-                .offset(y: showing ? 0 : 18)
+                .offset(y: showing ? 0 : 26)
+                .animation(reveal(0.72, 0.7), value: showing)
             }
             .frame(maxWidth: .infinity)
         }
         .background(M.cream)
-        .onAppear { withAnimation(.spring(response: 0.8, dampingFraction: 0.78)) { showing = true } }
+        .onAppear { showing = true }
     }
 }
 
 /// The garment in the reel, so it reads as a try-on and not a video of a girl.
 private struct ProductChip: View {
+    var showing: Bool
+
     var body: some View {
         Image("DemoProduct")
             .resizable().scaledToFill()
@@ -169,6 +182,9 @@ private struct ProductChip: View {
             .background(.white, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
             .shadow(color: .black.opacity(0.28), radius: 12, y: 5)
             .padding(12)
+            .scaleEffect(showing ? 1 : 0.5, anchor: .bottomLeading)
+            .opacity(showing ? 1 : 0)
+            .animation(.spring(response: 0.5, dampingFraction: 0.62).delay(0.62), value: showing)
     }
 }
 
