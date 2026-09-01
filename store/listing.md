@@ -87,7 +87,7 @@ account is mandatory.
 Contact:
     First name: Itamar
     Last name:  Stollman
-    Phone:      +972523847857
+    Phone:      <fill in on the App Store Connect form — this repo is public>
     Email:      support@getmiratryon.com
 
 ### Notes (4000 max)
