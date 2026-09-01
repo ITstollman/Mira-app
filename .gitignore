@@ -19,5 +19,11 @@ node_modules/
 server/
 landing/
 
+# holds APP_SECRET — Mira-app is a public repo. Secrets.example.xcconfig is the stub.
+Secrets.xcconfig
 # holds APP_SECRET for local runs — Mira-app is a public repo
 Mira.xcodeproj/xcshareddata/xcschemes/Mira.xcscheme
+
+# the admin SDK key bypasses every security rule. GoogleService-Info.plist is not a
+# secret — it ships inside every IPA — so it stays tracked.
+*-firebase-adminsdk-*.json

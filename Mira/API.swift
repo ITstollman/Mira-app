@@ -1,14 +1,29 @@
+import FirebaseAuth
+import FirebaseCore
 import UIKit
 
 /// The Mira server. The permanent Decart key never comes near the app — the server
 /// mints a short-lived client token and we hand that straight to the SDK.
 enum API {
-    // ponytail: dev defaults, overridable from the scheme's environment variables so
-    // there's no build config to maintain. Ship-time: bake into an xcconfig, and swap
-    // the shared secret for a per-user token once accounts exist — anyone who pulls the
-    // binary apart gets this one. The server's session cap and throttle bound the damage.
-    static let base = URL(string: env("MIRA_API") ?? "http://127.0.0.1:8787")!
-    private static let secret = env("MIRA_KEY") ?? "dev-secret"
+    // The fallbacks are what the app actually runs on. ProcessInfo carries the scheme's
+    // variables *only* while Xcode owns the process — tap the icon on the phone and they
+    // are gone, so a localhost default had the iPhone dialling itself: "could not connect
+    // to the server". The env vars remain the override for pointing at a local server.
+    // ponytail: the shared secret is a doorman, not a lock — anyone who pulls the binary
+    // apart gets this one, and it only keeps scanners off the free routes. Identity is the
+    // Firebase ID token below; the server keys the wallet off that when it is there.
+    static let base = URL(string: env("MIRA_API") ?? "https://mira-server-production-550f.up.railway.app")!
+    // The doorman never appears in this repo. Secrets.xcconfig (gitignored) puts it
+    // in Info.plist at build time, so the shipped binary has it and git does not.
+    // An unfilled Secrets.xcconfig leaves it empty, which the server refuses loudly.
+    private static let secret = env("MIRA_KEY")
+        ?? (Bundle.main.object(forInfoDictionaryKey: "MIRAKey") as? String)
+            .flatMap { $0.isEmpty ? nil : $0 }
+        ?? "dev-secret"
+    // Who we are before anyone signs in. The server still opens a wallet on it, and
+    // hands that wallet over on first sign-in.
+    // ponytail: delete this the day the app can be forced to update — see the matching
+    // comment in server/ledger.js.
     private static let device = UIDevice.current.identifierForVendor?.uuidString ?? "sim"
 
     struct Token {
@@ -40,19 +55,24 @@ enum API {
         return w.sparks
     }
 
-    // ponytail: no receipt behind this — the server only honours it when MOCK_PURCHASE is
-    // on, which production never is, so a "purchase" there fails and the balance snaps
-    // back. StoreKit 2's signed transaction is what goes in the body instead.
-    static func purchase(sparks: Int) async throws -> Int {
-        let w: Wallet = try await send("/v1/account/credit", body: ["sparks": sparks])
+    /// The signed transactions Apple handed over. The server verifies each against Apple's
+    /// root certificate and pays out per transaction id exactly once, so resending is free
+    /// — which is what makes it safe to keep handing over everything StoreKit still holds.
+    static func purchase(receipts: [String]) async throws -> Int {
+        let w: Wallet = try await send("/v1/account/credit", body: ["receipts": receipts])
         return w.sparks
     }
 
-    /// Paste a product URL, get back something wearable. Two hops: parse, then fetch the shot.
-    static func scrape(_ link: String) async throws -> Garment {
-        let s: Scraped = try await send("/v1/garment/scrape", body: ["url": link])
-        let shot = try await bytes("/v1/garment/image/\(s.id.replacingOccurrences(of: "scraped:", with: ""))")
-        return Garment(scraped: s, shot: shot)
+    /// Paste a product URL, get back what the page is selling — including every photo it
+    /// offers. Which of them is the garment rather than the mood is the user's call, so
+    /// this stops at handing over the list.
+    static func find(_ link: String) async throws -> Scraped {
+        try await send("/v1/garment/scrape", body: ["url": link])
+    }
+
+    /// One of those photos, by the id `find` handed back. They expire in half an hour.
+    static func shot(_ id: String) async throws -> Data {
+        try await bytes("/v1/garment/image/\(id.replacingOccurrences(of: "scraped:", with: ""))")
     }
 
     // MARK: - wire
@@ -60,6 +80,8 @@ enum API {
     struct Scraped: Decodable {
         let id: String, prompt: String, category: String, source: String
         let name: String?, brand: String?, price: Int?
+        /// The listing's photos, the page's own lead shot first.
+        let images: [String]
     }
 
     private struct Wallet: Decodable { let sparks: Int }
@@ -79,10 +101,20 @@ enum API {
         var errorDescription: String? { message }
     }
 
-    private static func request(_ path: String, body: [String: Any]?) -> URLRequest {
+    /// Asked for per request, never cached in a `static let`: Firebase hands back the one
+    /// it already has until the hour is nearly up, so this is a memory read almost always,
+    /// and a refresh exactly when it needs to be. A `static let` would freeze whatever was
+    /// true at type-init, which on a cold launch is nobody.
+    private static func idToken() async -> String? {
+        guard FirebaseApp.app() != nil, let user = Auth.auth().currentUser else { return nil }
+        return try? await user.getIDToken()
+    }
+
+    private static func request(_ path: String, body: [String: Any]?) async -> URLRequest {
         var r = URLRequest(url: base.appending(path: path))
         r.setValue(secret, forHTTPHeaderField: "x-mira-key")
         r.setValue(device, forHTTPHeaderField: "x-mira-device")
+        if let token = await idToken() { r.setValue("Bearer \(token)", forHTTPHeaderField: "authorization") }
         r.timeoutInterval = 30
         if let body {
             r.httpMethod = "POST"
@@ -94,15 +126,23 @@ enum API {
 
     /// A nil body means GET.
     private static func send<T: Decodable>(_ path: String, body: [String: Any]?) async throws -> T {
-        let (data, response) = try await URLSession.shared.data(for: request(path, body: body))
+        let (data, response) = try await fetch(await request(path, body: body))
         try check(data, response)
         return try JSONDecoder().decode(T.self, from: data)
     }
 
     private static func bytes(_ path: String) async throws -> Data {
-        let (data, response) = try await URLSession.shared.data(for: request(path, body: nil))
+        let (data, response) = try await fetch(await request(path, body: nil))
         try check(data, response)
         return data
+    }
+
+    /// Names the host in the banner. "Could not connect to the server" on its own cannot
+    /// tell a stale build still dialling localhost from a server that is genuinely down,
+    /// and that ambiguity cost an evening.
+    private static func fetch(_ req: URLRequest) async throws -> (Data, URLResponse) {
+        do { return try await URLSession.shared.data(for: req) }
+        catch let e as URLError { throw Fault("\(e.localizedDescription) — \(base.host() ?? "?")") }
     }
 
     /// Surface the server's own wording — it writes the sentence the user should read.

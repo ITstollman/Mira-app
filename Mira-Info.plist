@@ -10,5 +10,22 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<!-- ponytail: Google's sign-in callback, nothing else. This is REVERSED_CLIENT_ID
+	     copied verbatim out of GoogleService-Info.plist — re-copy it if that file is ever
+	     regenerated, and Checks.run() will shout at launch if the two drift. Apple's flow
+	     is in-process and needs no URL type. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.56688738822-23ejm4h2v716u93oo8lajrg3pte70ink</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Substituted from MIRA_KEY in Secrets.xcconfig at build time. Never a
+	     literal: this file is tracked and the repo is public. -->
+	<key>MIRAKey</key>
+	<string>$(MIRA_KEY)</string>
 </dict>
 </plist>
