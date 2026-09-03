@@ -52,17 +52,13 @@ Primary: Shopping   Secondary: Lifestyle
 4+
 
 ## URLs
-getmiratryon.com has no TLS certificate yet, and Apple checks these resolve. Use the
-Railway host until the cert lands, then swap — all three are editable any time.
+Use www. The apex still has no certificate — https://getmiratryon.com fails TLS, and
+Apple checks these resolve. Swap to the apex once Railway issues it; all three are
+editable any time.
 
-Support:   https://mira-production-d6d6.up.railway.app/legal.html#support
-Privacy:   https://mira-production-d6d6.up.railway.app/legal.html#privacy
-Marketing: leave blank (optional) until the domain answers
-
-Once getmiratryon.com serves:
-Support:   https://getmiratryon.com/legal.html#support
-Privacy:   https://getmiratryon.com/legal.html#privacy
-Marketing: https://getmiratryon.com
+Support:   https://www.getmiratryon.com/legal.html#support
+Privacy:   https://www.getmiratryon.com/legal.html#privacy
+Marketing: https://www.getmiratryon.com
 
 ## Screenshots
 store/export/*.png — 1290x2796, six panels, iPhone 6.9" slot.

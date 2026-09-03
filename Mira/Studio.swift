@@ -5,11 +5,17 @@ struct Look: Identifiable, Hashable {
     let garment: Garment
     let size: Size
     let shot: UIImage?
+    /// The mp4, for a look you filmed rather than photographed. It lives in the Vault
+    /// beside the stills, and `shot` is its poster frame — so a clip is just a look that
+    /// happens to move, and the pile, the grid and the sharing sheet need no special case.
+    let film: URL?
     let date: Date
 
-    // defaults keep every Look(garment:size:shot:) call site as it was; Vault passes all five
-    init(id: UUID = UUID(), garment: Garment, size: Size, shot: UIImage?, date: Date = Date()) {
-        self.id = id; self.garment = garment; self.size = size; self.shot = shot; self.date = date
+    // defaults keep every Look(garment:size:shot:) call site as it was; Vault passes all six
+    init(id: UUID = UUID(), garment: Garment, size: Size, shot: UIImage?,
+         film: URL? = nil, date: Date = Date()) {
+        self.id = id; self.garment = garment; self.size = size
+        self.shot = shot; self.film = film; self.date = date
     }
 
     static func == (a: Look, b: Look) -> Bool { a.id == b.id }
@@ -31,7 +37,9 @@ struct Look: Identifiable, Hashable {
     init() {
         (looks, loved) = Vault.load()
         if looks.isEmpty, Dev.has("dev:seed") {
-            looks = Catalog.all.prefix(4).map { Look(garment: $0, size: .s, shot: nil) }
+            // one piece worn twice, so the history has something to actually group
+            let seeds = Array(Catalog.all.prefix(3))
+            looks = (seeds + seeds.prefix(2)).map { Look(garment: $0, size: .s, shot: nil) }
         }
     }
 
@@ -59,6 +67,14 @@ struct Look: Identifiable, Hashable {
         guard !looks.contains(look) else { return }   // ponytail: reopening a kept look re-keeps as a no-op
         tap(.medium)
         withAnimation(.spring) { looks.insert(look, at: 0) }
+        Vault.save(looks, loved)
+    }
+
+    /// The shutter keeps every shot without asking, so throwing one out has to be easy.
+    /// Vault's sweep bins the jpeg and the mp4 on the way past.
+    func drop(_ look: Look) {
+        tap(.medium)
+        withAnimation(.spring) { looks.removeAll { $0.id == look.id } }
         Vault.save(looks, loved)
     }
 }

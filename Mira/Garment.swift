@@ -18,9 +18,11 @@ struct Garment: Identifiable, Hashable {
         case all = "All", dresses = "Dresses", tops = "Tops", sets = "Sets"
         case bottoms = "Bottoms", shoes = "Shoes", accessories = "Extras"
     }
-    enum Cut { case slip, mini, corset, blazer, skirt, bodysuit }
+    enum Cut: String { case slip, mini, corset, blazer, skirt, bodysuit }
 
     var isMine: Bool { link != nil }
+    /// Typed, not photographed — the one kind of piece with nothing to show the model.
+    var isWords: Bool { link?.hasPrefix("words://") == true }
 }
 
 // in an extension so the memberwise init survives — the catalog below leans on it
@@ -34,9 +36,24 @@ extension Garment {
                   shot: photo, link: "photos://\(id)")
     }
 
-    init(scraped s: API.Scraped, shot: Data) {
+    /// A piece you typed. There is no photograph and no swatch worth drawing, so the
+    /// sentence *is* the garment — which is why it goes up enriched and unreferenced.
+    init(described text: String) {
+        let id = UUID().uuidString
+        let said = text.trimmed ?? text
+        self.init(id: id, name: said, brand: "In your words", price: 0,
+                  cut: .slip, tint: M.petal, category: .dresses,
+                  // Decart's own template. Everything after "with" is theirs to write.
+                  prompt: "Substitute the outfit with \(said).",
+                  link: "words://\(id)")
+    }
+
+    /// `pick` is the photo the user chose out of the listing's gallery, and it doubles as
+    /// the piece's identity — the same link with a different shot picked is a different
+    /// thing to wear, and the mirror is handed exactly this one as its reference.
+    init(scraped s: API.Scraped, pick: String, shot: Data) {
         let category = Category(server: s.category)
-        self.init(id: s.id,
+        self.init(id: pick,
                   name: s.name?.trimmed ?? "Untitled",
                   brand: s.brand?.trimmed ?? URL(string: s.source)?.host() ?? "The internet",
                   price: s.price ?? 0,
@@ -96,6 +113,10 @@ enum Size: String, CaseIterable, Identifiable {
 // server/catalog.json — the live mirror sends them straight to Decart from here,
 // /v1/look reads them there. One feed replaces both when the catalog is real.
 enum Catalog {
+    /// What can travel as a bare id, because it can be looked back up. Everything else
+    /// has to carry itself into the Vault.
+    static let ids = Set(all.map(\.id))
+
     static let all: [Garment] = [
         .init(id: "g1", name: "Aphrodite Slip", brand: "Mira Atelier", price: 189, cut: .slip,
               tint: Color(red: 0.886, green: 0.337, blue: 0.431), category: .dresses,

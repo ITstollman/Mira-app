@@ -9,21 +9,26 @@ import SwiftUI
 struct OnboardingView: View {
     var done: () -> Void
 
-    enum Step: String, CaseIterable { case reveal, hero, pick, trial }
-    // ponytail: dev:hero / dev:pick / dev:trial drop straight into a stage so the reel
-    // doesn't have to be watched to reach the one being worked on.
+    enum Step: String, CaseIterable { case reveal, hero, trial }
+    // ponytail: dev:hero / dev:trial drop straight into a stage so the reel doesn't
+    // have to be watched to reach the one being worked on.
     @State private var step: Step = Step.allCases.last { Dev.has("dev:\($0)") } ?? .reveal
     @State private var pitching = false
+
+    /// One fitting, on the house — long enough to change twice and see it happen. The
+    /// whole pre-payment giveaway, and it is what the wallet opens with too.
+    static let freeSeconds = Spend.perFitting
 
     var body: some View {
         ZStack {
             M.cream.ignoresSafeArea()
             switch step {
             case .reveal: Reveal { go(.hero) }.transition(.opacity)
-            case .hero:   Hero { go(.pick) }.transition(.opacity)
-            case .pick, .trial: Trial(trying: step == .trial,
-                                     start: { go(.trial) },
-                                     over:  pitch)
+            case .hero:   Hero { go(.trial) }.transition(.opacity)
+            // the actual screen, not a rehearsal of it: same closet, same shutter, same
+            // countdown. A first try that teaches a layout the app doesn't have is a
+            // tutorial for somebody else's app.
+            case .trial:  MirrorView(trial: Self.freeSeconds, back: pitch)
                     .transition(.opacity)
             }
         }
@@ -101,6 +106,8 @@ private struct Reveal: View {
 private struct Hero: View {
     var go: () -> Void
     @State private var showing = false
+    /// Where the reel is, so the packshot can keep up with what she has on.
+    @State private var at = 0.0
 
     // ponytail: one flag, a delay per element. No phase enum, no timers.
     private func reveal(_ delay: Double, _ response: Double = 0.6) -> Animation {
@@ -127,9 +134,12 @@ private struct Hero: View {
 
                 Spacer(minLength: 24)
 
-                Reel(name: "demo", loop: true) { DemoPlaceholder() }
+                // the same cut the App Store preview runs: one mirror, three pieces,
+                // no cut away. A stranger deciding whether to spend thirty seconds
+                // should see the morph the store promised them.
+                Reel(name: "morph", loop: true, time: { at = $0 }) { DemoPlaceholder() }
                     .frame(width: w, height: w * 16 / 9)
-                    .overlay(alignment: .bottomLeading) { ProductChip(showing: showing) }
+                    .overlay(alignment: .bottomLeading) { ProductChip(showing: showing, at: at) }
                     .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous)
                         .strokeBorder(.white, lineWidth: 5))
@@ -140,7 +150,7 @@ private struct Hero: View {
 
                 Spacer(minLength: 24)
 
-                Text("No account. Thirty seconds on us.")
+                Text("No account. One fitting on us.")
                     .tracked(9, 1.8)
                     .foregroundStyle(M.mute.opacity(0.7))
                     .padding(.bottom, 14)
@@ -148,15 +158,34 @@ private struct Hero: View {
                     .animation(reveal(0.86), value: showing)
 
                 Button { tap(.medium); go() } label: {
-                    Text("Live try on")
-                        .tracked(13, 2.8)
-                        .foregroundStyle(M.onRose)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 20)
-                        .background(Capsule().fill(M.rose))
-                        .shadow(color: M.rouge.opacity(0.28), radius: 18, y: 8)
+                    HStack(spacing: 12) {
+                        // our camera, not SF Symbols' — the same one the home screen
+                        // wears. It is pink art, so it needed a white halo to survive
+                        // a rose fill; on rouge it reads on its own and the halo is
+                        // only there to keep the edge crisp.
+                        Image("Camera")
+                            .resizable().scaledToFit()
+                            .frame(width: 30, height: 30)
+                            .shadow(color: .white.opacity(0.55), radius: 4)
+                        Text("Live try on").tracked(13, 2.8)
+                    }
+                    // ponytail: white here, not M.onRose. That token is ink because it
+                    // rides M.rose at sixteen other call sites; this is the one button
+                    // on a rouge fill, where white measures 4.20:1 and ink only 3.50:1.
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 17)
+                    .background(Capsule().fill(M.rouge))
+                    .shadow(color: M.rouge.opacity(0.30), radius: 18, y: 8)
+                    // The moat. Rose on cream is 1.86:1, so the old fill read as a
+                    // tinted area rather than an object — emphasis by isolation instead
+                    // of by size: a cream gap nothing else on the screen has, then the
+                    // brand pink as a ring around it.
+                    .overlay(Capsule().strokeBorder(M.cream, lineWidth: 4).padding(-4))
+                    .overlay(Capsule().strokeBorder(M.rose, lineWidth: 2).padding(-6))
                 }
-                .padding(.horizontal, 30)
+                // 24, not 30: the rings spend 6pt of the old margin.
+                .padding(.horizontal, 24)
                 .padding(.bottom, 24)
                 .opacity(showing ? 1 : 0)
                 .offset(y: showing ? 0 : 26)
@@ -172,24 +201,46 @@ private struct Hero: View {
 /// The garment in the reel, so it reads as a try-on and not a video of a girl.
 private struct ProductChip: View {
     var showing: Bool
+    /// Seconds into morph.mp4.
+    var at: Double
+
+    /// [cut, packshot] — nil is the before, her own clothes, no chip. Measured off the
+    /// footage frame by frame, then pulled 0.15s early: the morph is a dissolve, and the
+    /// packshot should land as the piece arrives rather than after it has.
+    /// ponytail: if the reel is ever recut, re-measure both.
+    private static let cues: [(Double, String?)] =
+        [(0, nil), (2.12, "CatalogPink"), (4.50, "CatalogYellow")]
+
+    private var packshot: String? {
+        Self.cues.last { $0.0 <= at }?.1
+    }
 
     var body: some View {
-        Image("DemoProduct")
-            .resizable().scaledToFill()
-            .frame(width: 58, height: 58)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .padding(5)
-            .background(.white, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-            .shadow(color: .black.opacity(0.28), radius: 12, y: 5)
-            .padding(12)
-            .scaleEffect(showing ? 1 : 0.5, anchor: .bottomLeading)
-            .opacity(showing ? 1 : 0)
-            .animation(.spring(response: 0.5, dampingFraction: 0.62).delay(0.62), value: showing)
+        // portrait, not square: a packshot is a hanging garment and a square crop takes
+        // the hem off. Same 1024:1536 card the store deck shows.
+        Group {
+            if let packshot {
+                Image(packshot)
+                    .resizable().scaledToFill()
+                    .frame(width: 58, height: 87)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(5)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    .shadow(color: .black.opacity(0.28), radius: 12, y: 5)
+                    // it arrives when she changes, so it should land rather than fade
+                    .transition(.scale(scale: 0.7, anchor: .bottomLeading).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.34, dampingFraction: 0.7), value: packshot)
+        .padding(12)
+        .scaleEffect(showing ? 1 : 0.5, anchor: .bottomLeading)
+        .opacity(showing ? 1 : 0)
+        .animation(.spring(response: 0.5, dampingFraction: 0.62).delay(0.62), value: showing)
     }
 }
 
 /// Stands in for demo.mp4: the shot we mean to take, drawn.
-private struct DemoPlaceholder: View {
+struct DemoPlaceholder: View {
     @State private var shine = false
 
     var body: some View {
@@ -213,201 +264,6 @@ private struct DemoPlaceholder: View {
         .onAppear {
             withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: false)) { shine = true }
         }
-    }
-}
-
-// MARK: - 3 + 4. pick something, then thirty seconds of it
-
-private struct Trial: View {
-    let trying: Bool
-    var start: () -> Void
-    var over: () -> Void
-
-    @Environment(Studio.self) private var studio
-    @Environment(FitStore.self) private var fits
-    @StateObject private var cam = Camera()
-    @State private var mirror = LiveMirror()
-
-    @State private var left = Self.window
-    @State private var linking = false
-    @State private var photo: PhotosPickerItem?
-    @State private var pasting = false
-
-    static let window = 30
-    private let clock = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            if let track = mirror.track {
-                RTCMLVideoViewWrapper(track: track, layoutMode: .fill).ignoresSafeArea()
-            } else if cam.live {
-                CameraPreview(session: cam.session).ignoresSafeArea()
-            } else {
-                MirrorFallback().ignoresSafeArea()
-            }
-
-            // no live stream yet: the drawn piece is the stand-in, same as the mirror does
-            if mirror.track == nil, let w = studio.wearing {
-                GeometryReader { g in
-                    // the panel eats the bottom third while picking, so the body sits higher then
-                    let feed = g.size.height - (trying ? 130 : 330)
-                    GarmentLayer(garment: w, scale: studio.size.scale * fits.fit.scale)
-                        .frame(width: g.size.width * 0.58, height: feed * 0.74)
-                        .position(x: g.size.width / 2, y: feed * 0.56)
-                        .id(w.id)
-                        .transition(.scale(scale: 0.85).combined(with: .opacity))
-                }
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
-            }
-
-            if trying {
-                VStack {
-                    HStack {
-                        Countdown(left: left, of: Self.window)
-                        if linking {
-                            Text("Linking…")
-                                .tracked(9, 1.6)
-                                .foregroundStyle(M.mute)
-                                .padding(.horizontal, 12).padding(.vertical, 7)
-                                .background(Capsule().fill(.white))
-                        }
-                        Spacer()
-                    }
-                    .padding(.horizontal, 20)
-                    Spacer()
-                    // thirty seconds is only a test drive if you can change your mind in it
-                    rail
-
-                    // the countdown is a ceiling, not a turnstile — leave whenever you're sold
-                    Button { tap(.medium); finish() } label: {
-                        Text("Continue")
-                            .tracked(12, 2.6)
-                            .foregroundStyle(M.onRose)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(Capsule().fill(M.rose))
-                            .shadow(color: M.rouge.opacity(0.3), radius: 16, y: 7)
-                    }
-                    .padding(.horizontal, 30)
-                    .padding(.top, 14)
-                    .padding(.bottom, 12)
-                }
-            } else {
-                picker.transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .overlay(alignment: .topTrailing) {
-            FlipButton(cam: cam, mirror: mirror).padding(.horizontal, 20)
-        }
-        .background(M.cream)
-        .onAppear { cam.start() }
-        .onReceive(clock) { _ in
-            guard trying else { return }
-            // 0 is the terminal state — without it the tick keeps re-firing finish()
-            // behind the paywall, stopping a stopped session once a second
-            if left > 1 { left -= 1 } else if left == 1 { left = 0; finish() }
-        }
-        .onChange(of: trying) { _, on in if on { Task { await live() } } }
-        .sheet(isPresented: $pasting) { LinkSheet() }
-        .onChange(of: studio.mine.first?.id) { _, _ in if !trying { start() } }
-        .onChange(of: photo) { _, item in Task { await load(item) } }
-    }
-
-    /// Swap pieces mid-trial. No panel, no chrome — the feed stays the whole screen.
-    private var rail: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
-                ForEach(Catalog.all.prefix(8)) { g in
-                    Button { studio.wear(g); Task { await mirror.wear(g, size: studio.size) } } label: {
-                        GarmentLayer(garment: g)
-                            .frame(width: 42, height: 54)
-                            .padding(7)
-                            .background(Circle().fill(.white.opacity(studio.wearing?.id == g.id ? 1 : 0.72)))
-                            .overlay(Circle().strokeBorder(M.rose,
-                                                           lineWidth: studio.wearing?.id == g.id ? 2 : 0))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(g.name)
-                }
-            }
-            .padding(.horizontal, 20)
-        }
-    }
-
-    // MARK: the overlay that asks
-
-    private var picker: some View {
-        VStack(spacing: 0) {
-            Capsule().fill(M.shell).frame(width: 38, height: 5).padding(.top, 10).padding(.bottom, 16)
-
-            Text("Put something on")
-                .font(M.display(26, .light))
-                .foregroundStyle(M.ink)
-            Text("Pick a piece, use a photo, or paste a link")
-                .tracked(9, 1.5)
-                .foregroundStyle(M.mute)
-                .padding(.top, 6)
-                .padding(.bottom, 16)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(Catalog.all.prefix(8)) { g in
-                        Button { studio.wear(g); start() } label: { Chip(garment: g) }
-                            .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 22)
-            }
-            .padding(.bottom, 16)
-
-            VStack(spacing: 10) {
-                PhotosPicker(selection: $photo, matching: .images) {
-                    Way(icon: "photo.on.rectangle.angled", label: "Your photos")
-                }
-                Button { tap(); pasting = true } label: {
-                    Way(icon: "link", label: "Paste a link", shops: true)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 22)
-            .padding(.bottom, 24)
-        }
-        .frame(maxWidth: .infinity)
-        .background(
-            UnevenRoundedRectangle(topLeadingRadius: 30, topTrailingRadius: 30, style: .continuous)
-                .fill(.white)
-                .shadow(color: M.rouge.opacity(0.16), radius: 24, y: -6)
-                .ignoresSafeArea(edges: .bottom)
-        )
-    }
-
-    // MARK: the thirty seconds
-
-    /// ponytail: the trial is on the house — thirty seconds is $0.60 of compute and it is
-    /// the cheapest demo we will ever run. No `account.spend` here on purpose.
-    private func live() async {
-        guard let w = studio.wearing else { return }
-        linking = true
-        cam.stop()
-        await mirror.start(w, size: studio.size, seconds: Self.window, front: cam.front)
-        linking = false
-        // the SDK never came up (simulator, no key, no network) — the drawn piece carries
-        // the thirty seconds instead, which is still a demo
-        if mirror.phase == .off { cam.start() }
-    }
-
-    private func finish() {
-        Task {
-            _ = await mirror.stop()
-            tap(.medium)
-            over()
-        }
-    }
-
-    private func load(_ item: PhotosPickerItem?) async {
-        guard let item, let data = try? await item.loadTransferable(type: Data.self) else { return }
-        studio.add(Garment(photo: data))
     }
 }
 
@@ -440,51 +296,6 @@ struct Countdown: View {
     }
 }
 
-private struct Chip: View {
-    let garment: Garment
-
-    var body: some View {
-        VStack(spacing: 7) {
-            GarmentLayer(garment: garment)
-                .frame(width: 62, height: 78)
-                .padding(6)
-                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(M.blush))
-            Text(garment.name)
-                .font(M.ui(10, .medium))
-                .foregroundStyle(M.ink)
-                .lineLimit(1)
-        }
-        .frame(width: 82)
-    }
-}
-
-private struct Way: View {
-    let icon: String
-    let label: String
-    /// Puts the shops we can read a link from inside the button that reads links.
-    var shops = false
-
-    var body: some View {
-        VStack(spacing: 13) {
-            HStack(spacing: 8) {
-                Image(systemName: icon).font(.system(size: 14)).foregroundStyle(M.rose)
-                Text(label).font(M.ui(13, .medium)).foregroundStyle(M.ink)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 18)
-            if shops { BrandRow() }
-        }
-        .padding(.vertical, 15)
-        .padding(.horizontal, 14)
-        // radius 24 on a bare row is a capsule, and still reads right once the shops
-        // make it three times as tall — one shape covers both
-        .background(shape.fill(M.cream))
-        .overlay(shape.strokeBorder(M.shell, lineWidth: 1.2))
-    }
-
-    private var shape: RoundedRectangle { RoundedRectangle(cornerRadius: 24, style: .continuous) }
-}
-
 // MARK: - the reels
 
 /// The shops a link can come from, as their own square marks rather than a line of
@@ -493,9 +304,15 @@ private struct Way: View {
 struct BrandRow: View {
     /// Name for the screen reader, slug for the catalog. They differ: "H&M" is not a
     /// filename. A nil slug is the tile that stands for everywhere else.
+    ///
+    /// The five biggest places people actually buy clothes online: Shein is #1 in the US
+    /// and near the top worldwide, Gap is the biggest US retailer behind it, and
+    /// Zara/H&M/ASOS are the three every shopper recognises on sight. Ordered so the two
+    /// coloured tiles sit apart — five wordmarks in a row otherwise read as one grey smear.
+    /// ponytail: hardcoded. It becomes a fetched list the day marketing wants to sell a slot.
     static let shops: [(name: String, slug: String?)] = [
-        ("Zara", "zara"), ("Mango", "mango"), ("H&M", "hm"),
-        ("ASOS", "asos"), ("Revolve", "revolve"), ("and 99 more stores", nil),
+        ("Shein", "shein"), ("H&M", "hm"), ("Zara", "zara"),
+        ("Gap", "gap"), ("ASOS", "asos"), ("and 99 more stores", nil),
     ]
 
     var tile: CGFloat = 44
@@ -570,11 +387,14 @@ struct Reel<Placeholder: View>: View {
     let name: String
     var loop = false
     var ended: () -> Void = {}
+    /// Seconds in, a few times a second. For anything that has to stay in step with the
+    /// footage — the packshot on the onboarding reel is the only one so far.
+    var time: (Double) -> Void = { _ in }
     @ViewBuilder var placeholder: () -> Placeholder
 
     var body: some View {
         if let url = Bundle.main.url(forResource: name, withExtension: "mp4") {
-            Film(url: url, loop: loop, ended: ended)
+            Film(url: url, loop: loop, ended: ended, time: time)
         } else {
             placeholder()
         }
@@ -585,6 +405,7 @@ private struct Film: UIViewRepresentable {
     let url: URL
     let loop: Bool
     let ended: () -> Void
+    let time: (Double) -> Void
 
     final class Host: UIView {
         override class var layerClass: AnyClass { AVPlayerLayer.self }
@@ -593,7 +414,13 @@ private struct Film: UIViewRepresentable {
 
     final class Coordinator {
         var watch: NSObjectProtocol?
-        deinit { if let watch { NotificationCenter.default.removeObserver(watch) } }
+        var player: AVPlayer?
+        var ticker: Any?
+        deinit {
+            if let watch { NotificationCenter.default.removeObserver(watch) }
+            // the player holds this one, so it has to go back to the same player
+            if let ticker { player?.removeTimeObserver(ticker) }
+        }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -614,6 +441,10 @@ private struct Film: UIViewRepresentable {
                 ended()
             }
         }
+        context.coordinator.player = player
+        context.coordinator.ticker = player.addPeriodicTimeObserver(
+            forInterval: CMTime(value: 1, timescale: 30), queue: .main
+        ) { t in time(t.seconds) }
         player.play()
         return v
     }

@@ -36,8 +36,8 @@ enum M {
 }
 
 extension View {
-    func tracked(_ size: CGFloat = 11, _ kern: CGFloat = 2.4) -> some View {
-        font(M.ui(size, .semibold))
+    func tracked(_ size: CGFloat = 11, _ kern: CGFloat = 2.4, _ weight: Font.Weight = .semibold) -> some View {
+        font(M.ui(size, weight))
             .textCase(.uppercase)
             .kerning(kern)
     }
@@ -72,7 +72,7 @@ struct Tick: View {
     var body: some View {
         ZStack {
             Circle().fill(on ? M.rose : .clear).frame(width: 24, height: 24)
-            Circle().stroke(on ? M.rose : M.shell, lineWidth: 1.5).frame(width: 24, height: 24)
+            Circle().stroke(on ? M.rose : M.petal, lineWidth: 1.5).frame(width: 24, height: 24)
             if on {
                 Image(systemName: "checkmark")
                     .font(.system(size: 11, weight: .bold))
@@ -144,6 +144,31 @@ struct MiraMark: View {
     }
 }
 
+/// Waiting, in the brand's voice. The system spinner is a grey asterisk that belongs to
+/// nobody — this is the orb's pulse shrunk down far enough to sit inside a word.
+struct Dots: View {
+    var color: Color = M.rose
+    var d: CGFloat = 5
+    @State private var on = false
+
+    var body: some View {
+        HStack(spacing: d * 0.85) {
+            ForEach(0..<3, id: \.self) { i in
+                Circle()
+                    .fill(color)
+                    .frame(width: d, height: d)
+                    .opacity(on ? 1 : 0.2)
+                    .scaleEffect(on ? 1 : 0.55)
+                    // a third of a cycle apart, so the pulse travels rather than blinks
+                    .animation(.easeInOut(duration: 0.52).repeatForever().delay(Double(i) * 0.17),
+                               value: on)
+            }
+        }
+        .onAppear { on = true }
+        .accessibilityLabel("Working")
+    }
+}
+
 func tap(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
     UIImpactFeedbackGenerator(style: style).impactOccurred()
 }
@@ -151,7 +176,7 @@ func tap(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
 // ponytail: screenshot/dev switches, no effect unless launched with the flag.
 enum Dev {
     static func has(_ flag: String) -> Bool { ProcessInfo.processInfo.arguments.contains(flag) }
-    /// Any jump-to-screen flag at all. The gates before the app proper — the reel, the
-    /// tape measure — stand aside for it, since you asked for somewhere specific.
+    /// Any jump-to-screen flag at all. The gates before the app proper — the reel,
+    /// the sign-in — stand aside for it, since you asked for somewhere specific.
     static var jumping: Bool { ProcessInfo.processInfo.arguments.contains { $0.hasPrefix("dev:") } }
 }

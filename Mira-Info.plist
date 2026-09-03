@@ -2,14 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- ponytail: dev only. The Mira server is plain http on the LAN; this key covers
-	     unqualified hosts, .local and the private IP ranges. Delete it the day the
-	     server is reachable over https. -->
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
+	<!-- HTTPS only, and no non-standard crypto — so the App Store's export compliance
+	     question is answered here instead of on every single upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<!-- ponytail: Google's sign-in callback, nothing else. This is REVERSED_CLIENT_ID
 	     copied verbatim out of GoogleService-Info.plist — re-copy it if that file is ever
 	     regenerated, and Checks.run() will shout at launch if the two drift. Apple's flow

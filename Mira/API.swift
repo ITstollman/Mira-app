@@ -75,6 +75,21 @@ enum API {
         try await bytes("/v1/garment/image/\(id.replacingOccurrences(of: "scraped:", with: ""))")
     }
 
+    /// The wallet's half of account deletion. Takes its token by hand because it is
+    /// called *after* the Firebase user is gone — `idToken()` has nobody to ask by then,
+    /// and the server keeps no revocation check, so the last token minted still opens
+    /// the right wallet.
+    static func closeWallet(token: String?) async throws {
+        var r = URLRequest(url: base.appending(path: "/v1/account"))
+        r.httpMethod = "DELETE"
+        r.setValue(secret, forHTTPHeaderField: "x-mira-key")
+        r.setValue(device, forHTTPHeaderField: "x-mira-device")
+        if let token { r.setValue("Bearer \(token)", forHTTPHeaderField: "authorization") }
+        r.timeoutInterval = 30
+        let (data, response) = try await fetch(r)
+        try check(data, response)
+    }
+
     // MARK: - wire
 
     struct Scraped: Decodable {

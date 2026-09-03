@@ -19,6 +19,11 @@ final class Camera: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBu
     // ponytail: touched from two queues, worst case is one dropped/duplicated frame grab.
     private var pendingShot: ((UIImage?) -> Void)?
 
+    /// Every frame off the sensor, for whoever is filming. Nil when nobody is.
+    // ponytail: set on main, read on `queue` — same trade as `pendingShot`, and the worst
+    // case is the same: one frame at either end of a clip.
+    var filming: (@Sendable (CVPixelBuffer) -> Void)?
+
     func start() {
         guard !live else { return }
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -55,6 +60,26 @@ final class Camera: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBu
     func shoot(_ done: @escaping (UIImage?) -> Void) {
         guard live else { done(nil); return }
         pendingShot = done
+    }
+
+    /// The same frame, awaited — for the handover to the SDK, where the caller wants
+    /// something to leave on screen before it lets go of the lens.
+    ///
+    /// Half a second and then nil: a running session hands over a frame in 33ms, but an
+    /// interrupted one hands over nothing at all, and a mirror that will not start
+    /// because it is waiting on a picture nobody needs is the worse failure.
+    func still() async -> UIImage? {
+        guard live else { return nil }
+        return await withCheckedContinuation { c in
+            var resumed = false                     // both paths land on main
+            func settle(_ img: UIImage?) {
+                guard !resumed else { return }
+                resumed = true
+                c.resume(returning: img)
+            }
+            shoot(settle)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { settle(nil) }
+        }
     }
 
     private func configure() {
@@ -95,8 +120,10 @@ final class Camera: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBu
     }
 
     func captureOutput(_ o: AVCaptureOutput, didOutput sb: CMSampleBuffer, from c: AVCaptureConnection) {
-        guard pendingShot != nil,
-              let pb = CMSampleBufferGetImageBuffer(sb) else { return }
+        guard let pb = CMSampleBufferGetImageBuffer(sb) else { return }
+        // The connection is already rotated and mirrored, so these go into a clip upright.
+        filming?(pb)
+        guard pendingShot != nil else { return }
         let ci = CIImage(cvPixelBuffer: pb)
         guard let cg = ctx.createCGImage(ci, from: ci.extent) else { return }
         let img = UIImage(cgImage: cg)

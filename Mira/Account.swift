@@ -1,35 +1,36 @@
+import FirebaseAuth
+import FirebaseCore
+import StoreKit
 import SwiftUI
 
 // MARK: - the unit
 //
-// One spark = one second of Mira compute = $0.02 of COGS. The ledger and the wire
-// count sparks so margin is knowable per tap; the screen says minutes, because that is
-// what anyone standing in front of a mirror actually pictures. ``Spend.said`` is the
-// only place the two meet — never print a raw balance.
+// One fitting = fifteen seconds in the mirror, or one photograph = $0.30 of COGS. The
+// ledger and the wire still count seconds, because margin is only knowable per second
+// and the refund route hands back the ones a session never used. The screen only ever
+// says fittings, because that is the thing being sold — ``Spend.said`` is where the two
+// meet, and a raw balance is never printed anywhere else.
 
 enum Spend {
-    static let look = 3          // a still try-on render  ~$0.06
-    static let livePerMinute = 60 // the mirror running    ~$1.20
-    static let costPerSpark = 0.02
-    /// Mirrors MAX_SESSION_SECONDS on the server, which is the real ceiling.
+    /// What one fitting costs the wallet. A photograph costs the same and renders for a
+    /// fifth of it; that margin is what pays for the mirror.
+    static let perFitting = 15
+    static let costPerSecond = 0.02
+    /// Mirrors MAX_SESSION_SECONDS on the server, which is the real ceiling. Eight
+    /// fittings back to back: long enough to stop feeling metered, short enough that a
+    /// session left running can't empty a month.
     static let maxLiveSeconds = 120
 
-    static func sparks(forLiveSeconds s: Int) -> Int { (s * livePerMinute + 59) / 60 }
-    static func liveSeconds(forSparks n: Int) -> Int { n * 60 / livePerMinute }
+    static func sparks(_ fittings: Int) -> Int { fittings * perFitting }
+    static func fittings(_ sparks: Int) -> Int { sparks / perFitting }
+    static func liveSeconds(forSparks n: Int) -> Int { n }
 
-    /// A balance the way it is said out loud. Under a minute it stays in seconds rather
-    /// than rounding a first session away to "0.3".
-    static func said(_ n: Int) -> String {
-        guard n >= 60 else { return "\(n)" }
-        let m = Double(n) / 60
-        return m == m.rounded() ? "\(Int(m))" : String(format: "%.1f", m)
-    }
+    /// A balance the way it is said out loud. Whole fittings only — a fraction of one
+    /// buys nothing, so rounding down is the honest direction.
+    static func said(_ n: Int) -> String { "\(fittings(n))" }
 
     /// The word that goes with ``said``.
-    static func unit(_ n: Int) -> String {
-        if n < 60 { return n == 1 ? "second" : "seconds" }
-        return said(n) == "1" ? "minute" : "minutes"
-    }
+    static func unit(_ n: Int) -> String { fittings(n) == 1 ? "fitting" : "fittings" }
 }
 
 enum Plan: String, CaseIterable, Identifiable {
@@ -37,12 +38,35 @@ enum Plan: String, CaseIterable, Identifiable {
     case yearly, monthly
     var id: String { rawValue }
 
-    /// The intro offer, in seconds of live mirror. Three minutes is $3.60 of compute —
-    /// the most expensive pitch we run and the only one that has ever worked, because
-    /// nobody buys a mirror they have not stood in front of.
-    // ponytail: copy and grant both read this, so they cannot drift. StoreKit has to be
-    // told separately when the real introductory offer is configured.
-    static let trialSeconds = 180
+    /// What the plan hands over, every month. Twelve fittings is $3.60 of compute
+    /// against $10.62 of revenue on the yearly — the number the subscription is priced
+    /// on, and the only one that decides whether it makes money.
+    // ponytail: copy and grant both read this, so they cannot drift. App Store Connect and
+    // `SOLD` in server/server.js have to be told separately.
+    static let fittings = 12
+
+    /// The App Store Connect product id, typed there by hand. Nothing about the price or
+    /// the grant travels with it — the store owns the first and server.js owns the second.
+    var productID: String {
+        switch self {
+        case .yearly:  "ai.mira.tryon.pro.yearly"
+        case .monthly: "ai.mira.tryon.pro.monthly"
+        }
+    }
+
+    /// How many months one purchase covers — what the /mo figure divides the price by.
+    var months: Int {
+        switch self {
+        case .yearly:  12
+        case .monthly: 1
+        }
+    }
+
+    /// Which plan an entitlement is for, if it is for one at all.
+    init?(product id: String) {
+        guard let match = Plan.allCases.first(where: { $0.productID == id }) else { return nil }
+        self = match
+    }
 
     var price: String {
         switch self {
@@ -59,14 +83,16 @@ enum Plan: String, CaseIterable, Identifiable {
     }
     var headline: String {
         switch self {
-        case .yearly:  "Start free & save 50%"
+        case .yearly:  "Save 50%"
         case .monthly: "Monthly"
         }
     }
-    /// The catch, spelled out under the headline. Nil when there isn't one.
-    var billed: String? {
+    /// The catch, spelled out under the headline. Nil when there isn't one. `price` is
+    /// Apple's, in the currency the card is actually charged in — the strings above are
+    /// dollars, and dollars under a euro price is the kind of thing App Review reads.
+    func billed(_ price: String) -> String? {
         switch self {
-        case .yearly:  "$149.99 billed annually"
+        case .yearly:  "\(price) billed annually"
         case .monthly: nil
         }
     }
@@ -76,25 +102,29 @@ enum Plan: String, CaseIterable, Identifiable {
         case .monthly: "per month"
         }
     }
-    var note: String {
+    /// The disclosure under the buy button, which has to name the real charge.
+    func note(_ price: String) -> String {
         switch self {
         case .yearly:
-            "\(Self.trialCopy) free, then $149.99 per year. Billed annually and renews automatically unless canceled in the App Store."
+            "\(Self.included) a month. \(price) billed annually and renews automatically unless canceled in the App Store."
         case .monthly:
-            "$24.99 per month. Renews automatically unless canceled in the App Store."
+            "\(Self.included) a month. \(price) per month. Renews automatically unless canceled in the App Store."
         }
     }
     var badge: String? {
         switch self {
-        case .yearly:  "\(Self.trialCopy.uppercased()) FREE"
+        // ponytail: no free trial to shout about any more — a stranger gets one fitting
+        // before the paywall, and the plan is paid for before it grants anything. Say
+        // which row to pick instead of promising something that isn't given.
+        case .yearly:  "BEST VALUE"
         case .monthly: nil
         }
     }
-    /// Granted on signing, refreshed every month. Ten minutes.
-    var sparks: Int { 600 }
+    /// Granted on subscribing, refreshed every month.
+    var sparks: Int { Spend.sparks(Plan.fittings) }
 
-    /// "3 minutes" — written once so the badge, the headline and the small print agree.
-    static var trialCopy: String { "\(trialSeconds / 60) minutes" }
+    /// "12 fittings" — written once so the headline and the small print agree.
+    static var included: String { "\(fittings) fittings" }
 }
 
 struct Pack: Identifiable {
@@ -105,24 +135,26 @@ struct Pack: Identifiable {
 
     /// The size the way it is said out loud.
     var said: String { "\(Spend.said(sparks)) \(Spend.unit(sparks))" }
-    /// Rounded down to something round — "about" is doing the work.
-    var looks: Int { (sparks / Spend.look / 10) * 10 }
-    /// What a minute works out to: the pack equivalent of the plan's /mo figure, and the
-    /// only thing that makes the ladder legible at a glance. Checks enforces that it
-    /// falls as the packs get bigger — otherwise the badge on the middle one is a lie.
-    var perMinute: String {
+    /// What one works out to: the pack equivalent of the plan's /mo figure, and the only
+    /// thing that makes the ladder legible at a glance. Checks enforces that it falls as
+    /// the packs get bigger — otherwise the badge on the middle one is a lie.
+    var each: String {
         let d = Double(price.dropFirst()) ?? 0
-        return String(format: "$%.2f/min", d / (Double(sparks) / 60))
+        return String(format: "$%.2f each", d / Double(Spend.fittings(sparks)))
     }
+    /// How many fittings the price is divided by to get that figure.
+    var fittings: Int { Spend.fittings(sparks) }
 
-    // Whole minutes, and each step down the ladder buys a cheaper one — $5.00, $4.00,
-    // $3.33. All of them dearer than the plan's $1.25–2.50, which is the point: a topup
-    // is what you buy when you did not want to subscribe.
-    // ponytail: hardcoded. StoreKit products replace this when there's an App Store Connect entry.
+    // Each step down the ladder buys a cheaper fitting — $2.00, $1.67, $1.33 — against
+    // $0.30 of compute, so the thinnest of them still clears 4x. All of them dearer than
+    // the plan's $1.04, which is the point: a topup is what you buy when you did not
+    // want to subscribe.
+    // `id` is the App Store Connect product id; `price` is the fallback shown until the
+    // store answers with what this actually costs where the user is standing.
     static let all = [
-        Pack(id: "min.2",  sparks: 120, price: "$9.99",  note: nil),
-        Pack(id: "min.5",  sparks: 300, price: "$19.99", note: "MOST POPULAR"),
-        Pack(id: "min.12", sparks: 720, price: "$39.99", note: nil),
+        Pack(id: "ai.mira.tryon.fittings.10", sparks: Spend.sparks(10), price: "$19.99", note: nil),
+        Pack(id: "ai.mira.tryon.fittings.30", sparks: Spend.sparks(30), price: "$49.99", note: "MOST POPULAR"),
+        Pack(id: "ai.mira.tryon.fittings.75", sparks: Spend.sparks(75), price: "$99.99", note: nil),
     ]
 }
 
@@ -130,39 +162,97 @@ struct Pack: Identifiable {
 // the number is on screen before a round trip finishes. Anything that actually moves
 // money comes back with the new balance and `adopt` takes it.
 //
-// ponytail: plan and email are still UserDefaults with a mocked purchase. StoreKit 2 and
-// a receipt-verifying server slot in behind subscribe/topup without moving anything else.
-@Observable final class Account {
-    var email: String?
-    var plan: Plan?
+// Identity is Firebase's. `uid` and `email` are written by the auth-state listener and by
+// nothing else — signing in happens in AuthView, which hands Firebase a credential; this
+// class only ever notices. That is also what restores a session off the Keychain, which
+// is why it survives a reinstall where the old device-keyed wallet did not.
+//
+// `plan` is Apple's answer, not ours: Shop reads it out of `Transaction.currentEntitlements`
+// and writes it here through `entitled`. The UserDefaults copy is a cache for the cold
+// launch, the same way `sparks` is a cache of the ledger.
+@Observable @MainActor final class Account {
+    /// True until Firebase has said who is signed in. The root view holds still for it
+    /// rather than flashing the sign-in screen at somebody whose session is coming back.
+    private(set) var restoring = true
+    private(set) var uid: String?
+    private(set) var email: String?
+    private(set) var plan: Plan?
     var sparks: Int
 
-    var signedIn: Bool { email != nil }
-    /// What to call you on the home screen. The address is all Google hands over until
-    /// we ask for a profile scope we don't need yet.
+    /// StoreKit. Held here because every screen that sells something already has the
+    /// account in the environment, and the two only ever move together. Ignored by
+    /// Observation — the reference never changes, and Shop publishes its own insides.
+    @ObservationIgnored private(set) lazy var shop = Shop(self)
+
+    var signedIn: Bool { uid != nil }
+    /// What to call you on the home screen. Apple hands back an address only on the very
+    /// first authorization, and a relay one at that, so this falls through often.
     var name: String {
         guard let first = email?.prefix(while: { $0.isLetter }), !first.isEmpty else { return "there" }
         return first.prefix(1).uppercased() + first.dropFirst()
     }
     var subscribed: Bool { plan != nil }
-    var looksLeft: Int { sparks / Spend.look }
+    var fittingsLeft: Int { Spend.fittings(sparks) }
     var liveSeconds: Int { sparks }
 
     private let d = UserDefaults.standard
+    /// Dev flags fake a session, so the jump-to-screen launch arguments still land on a
+    /// phone that has never signed in. `dev:auth` and `dev:mail` are the exceptions —
+    /// they ask for the real sign-in screen, so they must not be faked past.
+    private let faking = Dev.jumping && !Dev.has("dev:auth") && !Dev.has("dev:mail")
+    /// A launch argument said what the plan is, so the App Store doesn't get a vote.
+    private let pinned = Dev.has("dev:pro") || Dev.has("dev:broke")
 
     init() {
-        email  = d.string(forKey: "email")
-        plan   = d.string(forKey: "plan").flatMap(Plan.init)
-        sparks = d.object(forKey: "sparks") as? Int ?? 15   // 5 looks on the house
+        // Firebase has to be up before Auth.auth() is touched, and a SwiftUI App's stored
+        // property defaults are evaluated *before* its init body — so configuring in
+        // MiraApp.init would already be too late for this line. Idempotent on purpose.
+        if FirebaseApp.app() == nil { FirebaseApp.configure() }
 
-        if Dev.has("dev:pro") { email = "you@mira.ai"; plan = .monthly; sparks = 600 }
-        if Dev.has("dev:broke") { email = "you@mira.ai"; plan = nil; sparks = 0 }
+        plan   = d.string(forKey: "plan").flatMap(Plan.init(rawValue:))
+        sparks = d.object(forKey: "sparks") as? Int ?? Spend.perFitting   // one fitting on the house
+
+        if Dev.has("dev:pro") { plan = .monthly; sparks = Spend.sparks(Plan.fittings) }
+        if Dev.has("dev:broke") { plan = nil; sparks = 0 }
+        if faking {
+            uid = "dev"; email = "you@mira.ai"; restoring = false
+            return                                          // no listener: it would undo all of that
+        }
+
+        // Fires once with whatever the Keychain had, then on every sign-in and sign-out.
+        Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            MainActor.assumeIsolated { self?.became(user) }
+        }
+        // Everything Apple already owes this phone, asked for at launch: a renewal that
+        // happened while the app was shut, a purchase made on another device, and any
+        // transaction whose credit never landed the first time.
+        shop.start()
     }
+
+    /// Firebase changed its mind about who this is.
+    private func became(_ user: User?) {
+        restoring = false
+        guard user?.uid != uid else { email = user?.email; return }
+        let first = uid == nil                              // signing in, rather than switching
+        uid = user?.uid
+        email = user?.email
+        // Each account's balance is remembered under its own key, so the next person to
+        // hold the phone never sees the last one's number. Signing in for the first time
+        // carries the device wallet's over, because the server moves those same sparks.
+        sparks = d.object(forKey: purse) as? Int ?? (first ? sparks : 0)
+        // A receipt credits an account, so nothing Apple owes could be handed over until
+        // there was one. Whatever this Apple ID owns lands on the wallet now.
+        Task { await sync(); await shop.settle() }
+    }
+
+    /// Where this account's cached balance is written down. Signed out, that is the
+    /// device wallet the server still opens for a caller with no token.
+    private var purse: String { uid.map { "sparks:\($0)" } ?? "sparks" }
 
     /// Take the server's number. It is the only one that can actually be spent.
     func adopt(_ n: Int) {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) { sparks = max(0, n) }
-        d.set(sparks, forKey: "sparks")
+        d.set(sparks, forKey: purse)
     }
 
     /// Ask what we really have. Quiet on failure — a stale number beats an error banner
@@ -171,44 +261,69 @@ struct Pack: Identifiable {
         if let n = try? await API.balance() { adopt(n) }
     }
 
-    func signIn(_ address: String) {
-        tap(.medium)
-        email = address
-        d.set(address, forKey: "email")
-    }
-
     func signOut() {
-        email = nil; plan = nil
-        d.removeObject(forKey: "email"); d.removeObject(forKey: "plan")
+        try? Auth.auth().signOut()                          // the listener does the rest
+        plan = nil
+        d.removeObject(forKey: "plan")
+        // The subscription belongs to the Apple ID, not to this Mira account, so it is
+        // still bought and paid for — `settle` holds off while signed out and hands it
+        // back on the next sign-in, which is the only place a receipt can be credited.
+        // ponytail: the lookbook stays. It never leaves the phone, so signing out is not
+        // the moment to delete somebody's photographs — and signing back in would find
+        // them gone. Clear the Vault here the day looks live on the account.
     }
 
-    func subscribe(_ p: Plan) {
-        tap(.medium)
-        // ponytail: mocked purchase, so the grant lands once ever. StoreKit's verified
-        // transaction id replaces this, and a renewal is what refills.
-        let first = plan == nil
-        plan = p
-        d.set(p.rawValue, forKey: "plan")
-        if first { buy(p.sparks) }
-    }
-
-    func topup(_ pack: Pack) {
-        tap(.medium)
-        buy(pack.sparks)
-    }
-
-    /// Show the sparks landing, then let the server say whether they really did. When it
-    /// refuses — which it does in production, there being no receipt — the number snaps
-    /// back rather than promising compute nobody paid for.
-    private func buy(_ n: Int) {
-        credit(n)
-        Task {
-            if let settled = try? await API.purchase(sparks: n) { adopt(settled) } else { await sync() }
+    /// Apple requires account deletion wherever there is account creation. The auth
+    /// record goes first — if Firebase wants a fresher sign-in it refuses before
+    /// anything is lost — then the wallet, on a token minted while the user still
+    /// existed. Returns the sentence to show, or nil once the account is gone.
+    func deleteAccount() async -> String? {
+        guard let user = Auth.auth().currentUser else { return nil }
+        let uid = user.uid
+        let token = try? await user.getIDToken()
+        do { try await user.delete() }
+        catch let e as NSError where e.code == AuthErrorCode.requiresRecentLogin.rawValue {
+            // A stale session may not delete an account. Signing out is the honest move:
+            // the next screen is the sign-in Firebase wants, and nothing is lost yet.
+            signOut()
+            return "To confirm it's you, sign in again and then delete your account."
         }
+        catch { return error.localizedDescription }
+        // Best-effort: if this call is lost, what's orphaned is one integer under a
+        // hashed key that no longer has an owner to name.
+        try? await API.closeWallet(token: token)
+        plan = nil
+        d.removeObject(forKey: "plan")
+        d.removeObject(forKey: "sparks:\(uid)")     // the listener has already moved on
+        return nil
     }
 
-    private func credit(_ n: Int) {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) { sparks = max(0, sparks + n) }
-        d.set(sparks, forKey: "sparks")
+    /// False if the purchase didn't happen, in which case the sheet stays where it is and
+    /// `shop.fault` has the sentence to show. Dismissing over a failed payment is how you
+    /// get the support mail that opens "you charged me".
+    func subscribe(_ p: Plan) async -> Bool {
+        tap(.medium)
+        return await shop.buy(p.productID)
+    }
+
+    func topup(_ pack: Pack) async -> Bool {
+        tap(.medium)
+        return await shop.buy(pack.id)
+    }
+
+    /// Apple requires a working Restore on any screen that sells something.
+    func restore() async {
+        tap(.medium)
+        await shop.restore()
+    }
+
+    /// What Apple says this Apple ID owns, straight from `Transaction.currentEntitlements`.
+    /// Cached so a cold launch isn't a paywall in a subscriber's face while StoreKit wakes
+    /// up, then overwritten the moment it answers — including to nil, which is what makes
+    /// a cancelled subscription actually lapse.
+    func entitled(_ p: Plan?) {
+        guard !pinned else { return }               // a dev flag outranks the store
+        plan = p
+        if let p { d.set(p.rawValue, forKey: "plan") } else { d.removeObject(forKey: "plan") }
     }
 }

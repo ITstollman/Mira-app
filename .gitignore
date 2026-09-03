@@ -27,3 +27,6 @@ Mira.xcodeproj/xcshareddata/xcschemes/Mira.xcscheme
 # the admin SDK key bypasses every security rule. GoogleService-Info.plist is not a
 # secret — it ships inside every IPA — so it stays tracked.
 *-firebase-adminsdk-*.json
+
+# python scratch
+__pycache__/

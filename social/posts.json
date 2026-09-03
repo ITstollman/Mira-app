@@ -1,0 +1,168 @@
+[
+  {
+    "slug": "brown-denim",
+    "label": "Brown + Denim",
+    "note": "the layering formula",
+    "left": "a chocolate-brown cropped suede jacket over a white ribbed tank, light-wash high-waisted wide-leg jeans, brown loafers, small brown shoulder bag",
+    "right": "a dark-brown oversized blazer over a beige silk cami, dark indigo wide-leg jeans, black slingback heels, structured brown tote"
+  },
+  {
+    "slug": "navy-burgundy",
+    "label": "Navy + Burgundy",
+    "note": "quietly expensive",
+    "left": "a navy satin halter-neck cowl midi dress, delicate gold jewellery, burgundy strappy heels, small burgundy clutch",
+    "right": "a burgundy velvet wrap midi dress with long sleeves, gold cuff bracelet, navy pointed heels, navy box clutch"
+  },
+  {
+    "slug": "all-black",
+    "label": "All Black",
+    "note": "mysterious",
+    "left": "a black sleeveless cowl-neck fitted top tucked into black wide-leg tailored trousers, gold horsebit belt, black square-toe heels, small black top-handle bag",
+    "right": "a black satin pussy-bow blouse tucked into black high-waisted wide-leg trousers, thin black belt, black pointed heels, black shoulder bag"
+  },
+  {
+    "slug": "butter-sage",
+    "label": "Butter + Sage",
+    "note": "softer than it sounds",
+    "left": "a butter-yellow oversized poplin shirt tucked into a sage-green satin bias midi skirt, cream mules, cream shoulder bag",
+    "right": "a sage-green fine-knit short-sleeve top tucked into butter-yellow pleated wide-leg trousers, tan flat sandals, tan shoulder bag"
+  },
+  {
+    "slug": "grey-cream",
+    "label": "Grey + Cream",
+    "note": "the no-thinking outfit",
+    "left": "a charcoal-grey oversized wool blazer over a cream ribbed tank, cream wide-leg trousers, grey pointed flats, grey shoulder bag",
+    "right": "a cream boucle cropped jacket over a grey fitted tee, grey straight-leg tailored trousers, cream loafers, cream top-handle bag"
+  },
+  {
+    "slug": "red-denim",
+    "label": "Red + Denim",
+    "note": "one loud piece is enough",
+    "left": "a scarlet-red fitted long-sleeve knit top tucked into light-wash straight-leg jeans, brown leather belt, red ballet flats, brown shoulder bag",
+    "right": "a red oversized tailored blazer over a white tee, dark indigo wide-leg jeans, white sneakers, black crossbody bag"
+  },
+  {
+    "slug": "olive-white",
+    "label": "Olive + White",
+    "note": "works in every season",
+    "left": "a white poplin shirt tied at the waist over a white tank, an olive-green cargo midi skirt, white sneakers, olive canvas shoulder bag",
+    "right": "an olive-green utility overshirt over a white ribbed tank, white wide-leg jeans, tan ankle boots, tan shoulder bag"
+  },
+  {
+    "slug": "pink-chocolate",
+    "label": "Pink + Chocolate",
+    "note": "underrated",
+    "left": "a soft-pink fine-knit crewneck tucked into chocolate-brown wide-leg tailored trousers, brown belt, brown pointed heels, pink shoulder bag",
+    "right": "a chocolate-brown leather bomber jacket over a soft-pink slip midi dress, brown knee-high boots, small brown bag"
+  },
+  {
+    "slug": "powderblue-white",
+    "label": "תכלת + לבן",
+    "note": "פשוט עובד",
+    "left": "a powder-blue oversized poplin shirt worn loose and half-tucked, crisp white wide-leg trousers, white leather loafers, a small white leather shoulder bag",
+    "right": "a white fine-rib knit tee tucked into powder-blue tailored wide-leg trousers, a powder-blue fine-knit cardigan draped over the shoulders, white slingback flats, a white top-handle bag"
+  },
+  {
+    "slug": "powderblue-camel",
+    "label": "תכלת + קאמל",
+    "note": "נראה יקר",
+    "left": "a powder-blue fine-knit crewneck jumper tucked into camel wide-leg tailored trousers, a camel leather belt, camel loafers, a camel leather shoulder bag",
+    "right": "a powder-blue oversized poplin shirt tucked into a camel midi skirt, a camel wool coat worn open, tan pointed slingback heels, a structured camel top-handle bag"
+  },
+  {
+    "slug": "lilac-grey",
+    "label": "Lilac + Grey",
+    "note": "soft but sharp",
+    "left": "a lilac fine-knit crewneck jumper tucked into charcoal-grey wide-leg tailored trousers, a slim grey belt, grey pointed flats, a small lilac shoulder bag",
+    "right": "a light-grey oversized wool blazer over a white tank, a lilac satin bias midi skirt, grey slingback heels, a grey top-handle bag"
+  },
+  {
+    "slug": "forest-camel",
+    "label": "Forest Green + Camel",
+    "note": "looks expensive, isn't",
+    "left": "a forest-green fine-rib knit polo tucked into camel wide-leg tailored trousers, a camel leather belt, camel loafers, a structured camel tote",
+    "right": "a camel wool coat worn open over a forest-green satin slip midi dress, camel knee-high boots, a small forest-green shoulder bag"
+  },
+  {
+    "slug": "chocolate-cream",
+    "label": "Chocolate + Cream",
+    "note": "like a latte",
+    "left": "a cream cable-knit jumper tucked into a chocolate-brown leather midi skirt, chocolate-brown knee-high boots, a small chocolate-brown shoulder bag",
+    "right": "a chocolate-brown oversized blazer over a cream ribbed tank, cream wide-leg trousers, cream pointed flats, a cream top-handle bag"
+  },
+  {
+    "slug": "black-white",
+    "label": "Black + White",
+    "note": "never fails",
+    "left": "a crisp white oversized poplin shirt half-tucked into black high-waisted wide-leg tailored trousers, a black leather belt, black square-toe heels, a small black top-handle bag",
+    "right": "a black fitted long-sleeve knit top tucked into a white pleated midi skirt, white pointed slingback flats, a white leather shoulder bag"
+  },
+  {
+    "slug": "mustard-navy",
+    "label": "Mustard + Navy",
+    "note": "the one nobody tries",
+    "left": "a mustard-yellow fine-knit short-sleeve top tucked into navy wide-leg tailored trousers, a navy leather belt, navy loafers, a mustard shoulder bag",
+    "right": "a navy oversized tailored blazer over a white tee, a mustard-yellow satin bias midi skirt, tan ankle boots, a small navy crossbody bag"
+  },
+  {
+    "slug": "pink-red",
+    "label": "Pink + Red",
+    "note": "the combo nobody expects",
+    "left": "a soft-pink oversized poplin shirt tucked into cherry-red wide-leg tailored trousers, red pointed heels, a small red shoulder bag",
+    "right": "a cherry-red fine-knit crewneck jumper tucked into a soft-pink pleated midi skirt, pink ballet flats, a pink top-handle bag"
+  },
+  {
+    "slug": "rust-cream",
+    "label": "Rust + Cream",
+    "note": "autumn in one look",
+    "left": "a rust-orange fine-knit crewneck jumper tucked into cream wide-leg tailored trousers, a tan leather belt, cream pointed flats, a small tan shoulder bag",
+    "right": "a cream oversized wool blazer over a rust-orange satin bias midi skirt and a white tank, tan knee-high boots, a rust-coloured top-handle bag",
+    "ref": "out-prev/05-grey-cream.png",
+    "cast": "The SAME two women as the reference photo — identical faces, hair and build.\nBoth are white women in their early twenties who look young and fresh-faced: bare,\nnatural-looking skin with almost no makeup, soft natural brows, softer rounder features\nrather than sharp editorial bone structure. Girl-next-door, not polished fashion models.\nLEFT: dark brunette, hair pulled back smooth into a low bun at the nape, small gold\nhoops, black oval sunglasses.\nRIGHT: golden blonde with wavy shoulder-length hair worn loose, black oval sunglasses.\nThe room is a bright white bedroom, exactly as in the reference photo: white panelled\nbuilt-in wardrobe doors fill the wall directly behind them; on the LEFT of the frame a\ntall white-framed window with a white radiator beneath it; on the RIGHT the corner of a\nbed made up in white linen. Pale grey low-pile carpet across the bottom of the frame.\nThe camera is DEAD STRAIGHT ON, perfectly perpendicular to the wardrobe doors, lens at\nchest height, absolutely no tilt, no angle, no perspective skew — a flat front-on\nframing like a mirror photo. They stand side by side, close together, shoulders square\nto the camera, both facing the lens.\nThere is CLEAR EMPTY WALL ABOVE THEIR HEADS: roughly the top quarter of the frame is\nnothing but wardrobe door and the top of the window, and their shoes sit close to the\nbottom edge. Full body head to shoes, nothing cropped. Bright natural daylight coming\nin through the window from the left, sharp, slight grain, authentic social-media photo.\nNo text, no captions, no watermark, no logo, no graphics.\n\nMATCH THE REFERENCE PHOTO EXACTLY for everything except the clothes: the same bedroom,\nthe same wardrobe doors, window, radiator and bed in the same places, the same camera\nposition, height and distance, the same lighting, and the two of them standing in the\nsame spots at the same size in the frame. Only the outfits change. Vary their arms and\nhands slightly — a different natural resting pose — but keep their feet planted where\nthey are and their shoulders square to the camera."
+  },
+  {
+    "slug": "teal-sand",
+    "label": "Teal + Sand",
+    "note": "unexpected, but it works",
+    "left": "a teal fine-rib knit short-sleeve top tucked into sand-beige pleated wide-leg trousers, a sand leather belt, sand loafers, a teal shoulder bag",
+    "right": "a sand-beige oversized poplin shirt half-tucked into a teal satin bias midi skirt, sand flat sandals, a structured sand tote",
+    "ref": "out-prev/05-grey-cream.png",
+    "cast": "The SAME two women as the reference photo — identical faces, hair and build.\nBoth are white women in their early twenties who look young and fresh-faced: bare,\nnatural-looking skin with almost no makeup, soft natural brows, softer rounder features\nrather than sharp editorial bone structure. Girl-next-door, not polished fashion models.\nLEFT: dark brunette, hair pulled back smooth into a low bun at the nape, small gold\nhoops, black oval sunglasses.\nRIGHT: golden blonde with wavy shoulder-length hair worn loose, black oval sunglasses.\nThe room is a bright white bedroom, exactly as in the reference photo: white panelled\nbuilt-in wardrobe doors fill the wall directly behind them; on the LEFT of the frame a\ntall white-framed window with a white radiator beneath it; on the RIGHT the corner of a\nbed made up in white linen. Pale grey low-pile carpet across the bottom of the frame.\nThe camera is DEAD STRAIGHT ON, perfectly perpendicular to the wardrobe doors, lens at\nchest height, absolutely no tilt, no angle, no perspective skew — a flat front-on\nframing like a mirror photo. They stand side by side, close together, shoulders square\nto the camera, both facing the lens.\nThere is CLEAR EMPTY WALL ABOVE THEIR HEADS: roughly the top quarter of the frame is\nnothing but wardrobe door and the top of the window, and their shoes sit close to the\nbottom edge. Full body head to shoes, nothing cropped. Bright natural daylight coming\nin through the window from the left, sharp, slight grain, authentic social-media photo.\nNo text, no captions, no watermark, no logo, no graphics.\n\nMATCH THE REFERENCE PHOTO EXACTLY for everything except the clothes: the same bedroom,\nthe same wardrobe doors, window, radiator and bed in the same places, the same camera\nposition, height and distance, the same lighting, and the two of them standing in the\nsame spots at the same size in the frame. Only the outfits change. Vary their arms and\nhands slightly — a different natural resting pose — but keep their feet planted where\nthey are and their shoulders square to the camera."
+  },
+  {
+    "slug": "burgundy-camel",
+    "label": "Burgundy + Camel",
+    "note": "the wine one",
+    "left": "a burgundy fine-knit polo tucked into camel wide-leg tailored trousers, a camel belt, camel loafers, a burgundy shoulder bag",
+    "right": "a camel wool coat worn open over a burgundy satin slip midi dress, burgundy ankle boots, a small camel top-handle bag",
+    "ref": "out-prev/05-grey-cream.png",
+    "cast": "The SAME two women as the reference photo — identical faces, hair and build.\nBoth are white women in their early twenties who look young and fresh-faced: bare,\nnatural-looking skin with almost no makeup, soft natural brows, softer rounder features\nrather than sharp editorial bone structure. Girl-next-door, not polished fashion models.\nLEFT: dark brunette, hair pulled back smooth into a low bun at the nape, small gold\nhoops, black oval sunglasses.\nRIGHT: golden blonde with wavy shoulder-length hair worn loose, black oval sunglasses.\nThe room is a bright white bedroom, exactly as in the reference photo: white panelled\nbuilt-in wardrobe doors fill the wall directly behind them; on the LEFT of the frame a\ntall white-framed window with a white radiator beneath it; on the RIGHT the corner of a\nbed made up in white linen. Pale grey low-pile carpet across the bottom of the frame.\nThe camera is DEAD STRAIGHT ON, perfectly perpendicular to the wardrobe doors, lens at\nchest height, absolutely no tilt, no angle, no perspective skew — a flat front-on\nframing like a mirror photo. They stand side by side, close together, shoulders square\nto the camera, both facing the lens.\nThere is CLEAR EMPTY WALL ABOVE THEIR HEADS: roughly the top quarter of the frame is\nnothing but wardrobe door and the top of the window, and their shoes sit close to the\nbottom edge. Full body head to shoes, nothing cropped. Bright natural daylight coming\nin through the window from the left, sharp, slight grain, authentic social-media photo.\nNo text, no captions, no watermark, no logo, no graphics.\n\nMATCH THE REFERENCE PHOTO EXACTLY for everything except the clothes: the same bedroom,\nthe same wardrobe doors, window, radiator and bed in the same places, the same camera\nposition, height and distance, the same lighting, and the two of them standing in the\nsame spots at the same size in the frame. Only the outfits change. Vary their arms and\nhands slightly — a different natural resting pose — but keep their feet planted where\nthey are and their shoulders square to the camera."
+  },
+  {
+    "slug": "cobalt-white",
+    "label": "Cobalt + White",
+    "note": "loud in a good way",
+    "left": "a cobalt-blue fitted long-sleeve knit top tucked into crisp white wide-leg trousers, white slingback flats, a small cobalt-blue shoulder bag",
+    "right": "a crisp white oversized poplin shirt tucked into a cobalt-blue pleated midi skirt, white pointed heels, a white top-handle bag",
+    "ref": "out-prev/05-grey-cream.png",
+    "cast": "The SAME two women as the reference photo — identical faces, hair and build.\nBoth are white women in their early twenties who look young and fresh-faced: bare,\nnatural-looking skin with almost no makeup, soft natural brows, softer rounder features\nrather than sharp editorial bone structure. Girl-next-door, not polished fashion models.\nLEFT: dark brunette, hair pulled back smooth into a low bun at the nape, small gold\nhoops, black oval sunglasses.\nRIGHT: golden blonde with wavy shoulder-length hair worn loose, black oval sunglasses.\nThe room is a bright white bedroom, exactly as in the reference photo: white panelled\nbuilt-in wardrobe doors fill the wall directly behind them; on the LEFT of the frame a\ntall white-framed window with a white radiator beneath it; on the RIGHT the corner of a\nbed made up in white linen. Pale grey low-pile carpet across the bottom of the frame.\nThe camera is DEAD STRAIGHT ON, perfectly perpendicular to the wardrobe doors, lens at\nchest height, absolutely no tilt, no angle, no perspective skew — a flat front-on\nframing like a mirror photo. They stand side by side, close together, shoulders square\nto the camera, both facing the lens.\nThere is CLEAR EMPTY WALL ABOVE THEIR HEADS: roughly the top quarter of the frame is\nnothing but wardrobe door and the top of the window, and their shoes sit close to the\nbottom edge. Full body head to shoes, nothing cropped. Bright natural daylight coming\nin through the window from the left, sharp, slight grain, authentic social-media photo.\nNo text, no captions, no watermark, no logo, no graphics.\n\nMATCH THE REFERENCE PHOTO EXACTLY for everything except the clothes: the same bedroom,\nthe same wardrobe doors, window, radiator and bed in the same places, the same camera\nposition, height and distance, the same lighting, and the two of them standing in the\nsame spots at the same size in the frame. Only the outfits change. Vary their arms and\nhands slightly — a different natural resting pose — but keep their feet planted where\nthey are and their shoulders square to the camera."
+  },
+  {
+    "slug": "mint-denim",
+    "label": "Mint + Denim",
+    "note": "fresh air",
+    "left": "a mint-green oversized poplin shirt half-tucked into light-wash high-waisted wide-leg jeans, white sneakers, a small white shoulder bag",
+    "right": "a mint-green fine-knit cardigan buttoned over a white tank, dark indigo straight-leg jeans, tan flat sandals, a tan crossbody bag",
+    "ref": "out-prev/05-grey-cream.png",
+    "cast": "The SAME two women as the reference photo — identical faces, hair and build.\nBoth are white women in their early twenties who look young and fresh-faced: bare,\nnatural-looking skin with almost no makeup, soft natural brows, softer rounder features\nrather than sharp editorial bone structure. Girl-next-door, not polished fashion models.\nLEFT: dark brunette, hair pulled back smooth into a low bun at the nape, small gold\nhoops, black oval sunglasses.\nRIGHT: golden blonde with wavy shoulder-length hair worn loose, black oval sunglasses.\nThe room is a bright white bedroom, exactly as in the reference photo: white panelled\nbuilt-in wardrobe doors fill the wall directly behind them; on the LEFT of the frame a\ntall white-framed window with a white radiator beneath it; on the RIGHT the corner of a\nbed made up in white linen. Pale grey low-pile carpet across the bottom of the frame.\nThe camera is DEAD STRAIGHT ON, perfectly perpendicular to the wardrobe doors, lens at\nchest height, absolutely no tilt, no angle, no perspective skew — a flat front-on\nframing like a mirror photo. They stand side by side, close together, shoulders square\nto the camera, both facing the lens.\nThere is CLEAR EMPTY WALL ABOVE THEIR HEADS: roughly the top quarter of the frame is\nnothing but wardrobe door and the top of the window, and their shoes sit close to the\nbottom edge. Full body head to shoes, nothing cropped. Bright natural daylight coming\nin through the window from the left, sharp, slight grain, authentic social-media photo.\nNo text, no captions, no watermark, no logo, no graphics.\n\nMATCH THE REFERENCE PHOTO EXACTLY for everything except the clothes: the same bedroom,\nthe same wardrobe doors, window, radiator and bed in the same places, the same camera\nposition, height and distance, the same lighting, and the two of them standing in the\nsame spots at the same size in the frame. Only the outfits change. Vary their arms and\nhands slightly — a different natural resting pose — but keep their feet planted where\nthey are and their shoulders square to the camera."
+  },
+  {
+    "slug": "charcoal-blush",
+    "label": "Charcoal + Blush",
+    "note": "soft and strong",
+    "left": "a charcoal-grey oversized wool blazer over a blush-pink silk cami, charcoal-grey straight-leg tailored trousers, charcoal pointed flats, a blush shoulder bag",
+    "right": "a blush-pink fine-knit crewneck jumper tucked into a charcoal-grey satin bias midi skirt, charcoal ankle boots, a small charcoal top-handle bag",
+    "ref": "out-prev/05-grey-cream.png",
+    "cast": "The SAME two women as the reference photo — identical faces, hair and build.\nBoth are white women in their early twenties who look young and fresh-faced: bare,\nnatural-looking skin with almost no makeup, soft natural brows, softer rounder features\nrather than sharp editorial bone structure. Girl-next-door, not polished fashion models.\nLEFT: dark brunette, hair pulled back smooth into a low bun at the nape, small gold\nhoops, black oval sunglasses.\nRIGHT: golden blonde with wavy shoulder-length hair worn loose, black oval sunglasses.\nThe room is a bright white bedroom, exactly as in the reference photo: white panelled\nbuilt-in wardrobe doors fill the wall directly behind them; on the LEFT of the frame a\ntall white-framed window with a white radiator beneath it; on the RIGHT the corner of a\nbed made up in white linen. Pale grey low-pile carpet across the bottom of the frame.\nThe camera is DEAD STRAIGHT ON, perfectly perpendicular to the wardrobe doors, lens at\nchest height, absolutely no tilt, no angle, no perspective skew — a flat front-on\nframing like a mirror photo. They stand side by side, close together, shoulders square\nto the camera, both facing the lens.\nThere is CLEAR EMPTY WALL ABOVE THEIR HEADS: roughly the top quarter of the frame is\nnothing but wardrobe door and the top of the window, and their shoes sit close to the\nbottom edge. Full body head to shoes, nothing cropped. Bright natural daylight coming\nin through the window from the left, sharp, slight grain, authentic social-media photo.\nNo text, no captions, no watermark, no logo, no graphics.\n\nMATCH THE REFERENCE PHOTO EXACTLY for everything except the clothes: the same bedroom,\nthe same wardrobe doors, window, radiator and bed in the same places, the same camera\nposition, height and distance, the same lighting, and the two of them standing in the\nsame spots at the same size in the frame. Only the outfits change. Vary their arms and\nhands slightly — a different natural resting pose — but keep their feet planted where\nthey are and their shoulders square to the camera."
+  }
+]

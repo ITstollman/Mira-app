@@ -1,0 +1,129 @@
+{
+  "identifier" : "MIRA0001",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "19.99",
+      "familyShareable" : false,
+      "internalID" : "1000000001",
+      "localizations" : [
+        {
+          "description" : "10 try-ons, yours to keep. Fittings never expire.",
+          "displayName" : "10 fittings",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "ai.mira.tryon.fittings.10",
+      "referenceName" : "10 fittings",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "49.99",
+      "familyShareable" : false,
+      "internalID" : "1000000002",
+      "localizations" : [
+        {
+          "description" : "30 try-ons, yours to keep. Fittings never expire.",
+          "displayName" : "30 fittings",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "ai.mira.tryon.fittings.30",
+      "referenceName" : "30 fittings",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "99.99",
+      "familyShareable" : false,
+      "internalID" : "1000000003",
+      "localizations" : [
+        {
+          "description" : "75 try-ons, yours to keep. Fittings never expire.",
+          "displayName" : "75 fittings",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "ai.mira.tryon.fittings.75",
+      "referenceName" : "75 fittings",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "20000001",
+      "localizations" : [
+
+      ],
+      "name" : "Mira Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "149.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "2000000001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "12 fittings a month, billed once a year.",
+              "displayName" : "Mira Pro — Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "ai.mira.tryon.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Mira Pro Yearly",
+          "subscriptionGroupID" : "20000001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "24.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "2000000002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "12 fittings a month.",
+              "displayName" : "Mira Pro — Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "ai.mira.tryon.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Mira Pro Monthly",
+          "subscriptionGroupID" : "20000001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
