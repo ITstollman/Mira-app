@@ -15,6 +15,11 @@ struct HomeView: View {
     @State private var topup = Dev.has("dev:topup")
     @State private var paywall = Dev.has("dev:paywall")
 
+    /// Where the stickers are. Starts finished when the intro isn't running, so there is
+    /// never a frame of empty screen to catch.
+    @State private var beat: Beat = Intro.skip ? .gone : .cold
+    @State private var shown = Intro.skip
+
     var body: some View {
         ZStack {
             M.cream.ignoresSafeArea()
@@ -29,6 +34,17 @@ struct HomeView: View {
             }
             .accessibilityLabel("Settings")
             .padding(.horizontal, 20)
+            .reveals(shown, by: 0.18)
+        }
+        // The bag empties, the page clears, the screen arrives. Once per launch — the orb
+        // is live throughout, so this is never in the way of the only gesture here.
+        .task {
+            guard !Intro.skip else { return }
+            Intro.played = true
+            beat = .out
+            try? await Task.sleep(for: .seconds(0.92))
+            beat = .gone
+            shown = true
         }
         // the history is both halves: what you kept, filed under what you were
         // wearing, and the way straight back into the wearing.
@@ -61,14 +77,19 @@ struct HomeView: View {
                 .minimumScaleFactor(0.7)   // at AX2 it otherwise runs into both margins
                 .padding(.horizontal, 24)
                 .padding(.bottom, 72)   // clears the widest ring
+                .reveals(shown, by: 0.12)
 
+            // behind, not over: the sphere is opaque, so the pieces are already hidden
+            // under it at rest and come out from beneath rather than fading up out of
+            // nowhere. It also keeps the orb the only thing on the screen you can hit.
             StartOrb(go: { start(false) })
+                .background { Scatter(beat: beat) }
 
             Spacer()
 
             // nothing kept yet means no bar: an empty shelf is worse than no shelf, and
             // the first shutter puts it there.
-            if !studio.looks.isEmpty { bar }
+            if !studio.looks.isEmpty { bar.reveals(shown, by: 0.2, rise: 22) }
         }
     }
 
@@ -267,6 +288,100 @@ struct LooksSheet: View {
 /// Present one sheet as another closes — SwiftUI drops the second otherwise.
 func after(_ work: @escaping () -> Void) {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: work)
+}
+
+/// The intro belongs to the launch, not to the screen. HomeView is built again every time
+/// you come back from the mirror, and a second and a half of stickers between you and the
+/// camera the fourth time today is a toll, not a flourish.
+enum Intro {
+    static var played = false
+
+    /// Reduce Motion gets the finished screen rather than a gentler intro. Asked here and
+    /// not from the environment because this decides the *first* state — a frame later and
+    /// the title has already flashed in from nothing.
+    static var skip: Bool { played || UIAccessibility.isReduceMotionEnabled }
+}
+
+/// Under the orb, out on the page, or gone back under.
+enum Beat { case cold, out, gone }
+
+extension View {
+    /// Reveal, not merely fade. An invisible button is still a button and still a stop on
+    /// the VoiceOver rotor, so the hit test and the accessibility tree travel with the ink
+    /// — the one thing three separate call sites would each have forgotten.
+    func reveals(_ on: Bool, by delay: Double, rise: CGFloat = 12) -> some View {
+        opacity(on ? 1 : 0)
+            .offset(y: on ? 0 : rise)
+            .allowsHitTesting(on)
+            .accessibilityHidden(!on)
+            .animation(.easeOut(duration: 0.36).delay(delay), value: on)
+    }
+}
+
+/// One house piece as a die-cut sticker — the product shot, a thick white edge and a
+/// shadow. Deliberately the recipe Snap already uses for a kept look, a size up: the
+/// language for "a garment as an object you can pick up" is spoken once in this app.
+private struct Sticker: View {
+    let art: String
+    let w: CGFloat
+
+    var body: some View {
+        Image(art)
+            .resizable().scaledToFill()
+            .frame(width: w, height: w * 4 / 3)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(.white, lineWidth: 3))
+            .shadow(color: M.rouge.opacity(0.18), radius: 9, y: 5)
+    }
+}
+
+/// The bag emptied over the page: nine pieces thrown out from under the orb, held for a
+/// breath, then pulled back under it. Laid out by hand and not on a ring — nine things at
+/// even angles around a circle is a radial menu, and this is meant to read as a handful of
+/// stickers dropped on paper.
+private struct Scatter: View {
+    let beat: Beat
+
+    /// Offsets are from the orb's own centre, so this never has to know where the orb
+    /// landed on the screen. One rule holds the whole table: |x| plus the *rotated* half
+    /// width — (w·cos t + 1.333w·sin t) / 2, which a 12° tilt grows by a third — stays
+    /// under 184, so nothing is shaved by a screen edge on the narrowest phone. Sizes and
+    /// tilts alternate on purpose: nine of a size at even angles is a radial menu, and
+    /// this wants to read as a handful of stickers dropped on paper.
+    private static let bag: [(art: String, x: CGFloat, y: CGFloat, w: CGFloat, tilt: Double)] = [
+        ("Outfit01", -136, -206, 68, -12), ("Outfit06",   74, -252, 52,  -7),
+        ("Outfit09",  146, -150, 58,  10), ("Outfit03", -146,  -34, 56,  14),
+        ("Outfit05",  144,  -12, 62,  -9), ("Outfit08",  148,  118, 54,  12),
+        ("Outfit04", -132,  182, 72,  11), ("Outfit07",   62,  246, 56, -13),
+        ("Outfit02",  -46,  272, 60,   7),
+    ]
+
+    var body: some View {
+        ZStack {
+            ForEach(Array(Self.bag.enumerated()), id: \.offset) { i, s in
+                Sticker(art: s.art, w: s.w)
+                    .rotationEffect(.degrees(beat == .out ? s.tilt : 0))
+                    .offset(x: beat == .out ? s.x : 0, y: beat == .out ? s.y : 0)
+                    // never fully closed: at rest it is a small thing behind an opaque
+                    // sphere, which is what makes the throw look like it came from inside
+                    .scaleEffect(beat == .out ? 1 : 0.3)
+                    .opacity(beat == .gone ? 0 : 1)
+                    .animation(curve(i), value: beat)
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// Out on a loose spring so each one overshoots its tilt and settles — thrown, not
+    /// placed. Back in on ease-in from the far end of the bag, so the page clears from
+    /// the outside rather than rewinding the way it came.
+    private func curve(_ i: Int) -> Animation {
+        beat == .out
+            ? .spring(response: 0.42, dampingFraction: 0.64).delay(Double(i) * 0.035)
+            : .easeIn(duration: 0.3).delay(Double(Self.bag.count - 1 - i) * 0.02)
+    }
 }
 
 
