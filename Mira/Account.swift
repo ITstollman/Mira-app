@@ -74,33 +74,21 @@ enum Plan: String, CaseIterable, Identifiable {
         case .monthly: "$24.99"
         }
     }
-    /// What it costs a month either way — the only number worth putting side by side.
+    /// What it works out to a month. Kept, but never set larger or darker than the
+    /// billed amount: 1.0 (2) was rejected under 3.1.2(c) for showing this more
+    /// conspicuously than the sum actually charged. The guideline allows calculated
+    /// pricing — only in a subordinate position and size.
     var perMonth: String {
         switch self {
         case .yearly:  "$12.50/mo"
         case .monthly: "$24.99/mo"
         }
     }
-    var headline: String {
-        switch self {
-        case .yearly:  "Save 50%"
-        case .monthly: "Monthly"
-        }
-    }
-    /// The catch, spelled out under the headline. Nil when there isn't one. `price` is
-    /// Apple's, in the currency the card is actually charged in — the strings above are
-    /// dollars, and dollars under a euro price is the kind of thing App Review reads.
-    func billed(_ price: String) -> String? {
-        switch self {
-        case .yearly:  "\(price) billed annually"
-        case .monthly: nil
-        }
-    }
-    var cadence: String {
-        switch self {
-        case .yearly:  "per year"
-        case .monthly: "per month"
-        }
+    /// The grey line under the billed amount: how often the card is charged, and — only
+    /// where it differs from the charge — what that comes to a month. On monthly the two
+    /// are the same number, so saying it twice would be noise.
+    func terms(_ perMonth: String) -> String {
+        months > 1 ? "billed annually · \(perMonth)" : "billed monthly"
     }
     /// The disclosure under the buy button, which has to name the real charge.
     func note(_ price: String) -> String {
@@ -116,7 +104,7 @@ enum Plan: String, CaseIterable, Identifiable {
         // ponytail: no free trial to shout about any more — a stranger gets one fitting
         // before the paywall, and the plan is paid for before it grants anything. Say
         // which row to pick instead of promising something that isn't given.
-        case .yearly:  "BEST VALUE"
+        case .yearly:  "BEST VALUE · SAVE 50%"
         case .monthly: nil
         }
     }

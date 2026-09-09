@@ -38,6 +38,13 @@ struct PaywallView: View {
                     }
 
                 VStack(spacing: 0) {
+                    // App Review's required-info list for auto-renewables opens with the
+                    // title of the subscription, and the headline under this sells the
+                    // benefit without ever naming the thing being sold.
+                    Text("Mira Pro").tracked(10, 2.2)
+                        .foregroundStyle(M.mute)
+                        .padding(.bottom, 11)
+
                     Text("\(Plan.included) a month to keep going")
                         .font(M.display(33, .light))
                         .kerning(0.5)
@@ -128,7 +135,6 @@ private struct PlanRow: View {
     /// Apple's price where Apple has one, ours where the store hasn't answered yet — a
     /// row that renders blank while the App Store thinks is worse than a row in dollars.
     private var price: String { shop.price(plan.productID) ?? plan.price }
-    private var billed: String? { plan.billed(price) }
     private var perMonth: String {
         shop.split(plan.productID, by: plan.months).map { "\($0)/mo" } ?? plan.perMonth
     }
@@ -145,26 +151,29 @@ private struct PlanRow: View {
                         .padding(.vertical, 8)
                         .background(M.rose)
                 }
+                // One number is set large here, and it is the one the card is charged.
+                // The cadence, the /mo it works out to and the discount all sit at 9-11pt
+                // grey underneath or in the badge. 1.0 (2) was rejected under 3.1.2(c)
+                // for setting the /mo figure in semibold on the right, where it read as
+                // the headline price and buried the $149.99 in a grey subtitle.
                 HStack(spacing: 13) {
                     Tick(on: on)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(plan.headline)
-                            .font(.system(size: 16, weight: .semibold))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(price)
+                            .font(.system(size: 26, weight: .semibold))
                             .foregroundStyle(on ? M.ink : M.mute)
                             .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        Text(plan.terms(perMonth))
+                            .font(.system(size: 11))
+                            .foregroundStyle(M.mute)
+                            .lineLimit(1)
                             .minimumScaleFactor(0.85)
-                        if let billed {
-                            Text(billed).font(.system(size: 12)).foregroundStyle(M.mute)
-                        }
                     }
                     Spacer(minLength: 6)
-                    Text(perMonth)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(on ? M.ink : M.mute)
-                        .fixedSize()
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, billed == nil ? 21 : 16)
+                .padding(.vertical, 15)
                 .frame(maxWidth: .infinity)
                 .background(.white)
             }
